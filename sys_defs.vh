@@ -41,5 +41,7 @@
 `define BUS_DELAY 8
 
 
+//delay between request and receive in data mem
+`define MEM_DELAY #100
 `endif
 
