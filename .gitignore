@@ -1,0 +1,4 @@
+*.vcd
+*.html
+/baseline/output
+/baseline/testbench
