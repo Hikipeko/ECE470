@@ -4,14 +4,14 @@ module testbench;
   parameter half_period = 10;
   integer i = 1;
   reg clock;
-  top t (clock);
+  reg reset = 0;
+  top t (clock,reset);
 
   initial begin
     $dumpfile("test.vcd");
     $dumpvars(0, testbench);
-    // $dumpvars(0, testbench.top.data_mem);
 
-    #0 clock = 0;
+    #0 clock = 1;
     #5000 $finish;
   end
 

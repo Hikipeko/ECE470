@@ -4,7 +4,8 @@
 
 module top
 (
-    input wire clock
+    input wire clock,
+    input wire reset
 );
 wire [9:0] CC_addr,CM_addr;
 wire [31:0] CC_wData,CC_rData,CM_wData,CM_rData;
@@ -14,6 +15,7 @@ wire CC_read,CC_write,hit,CM_read,CM_write,done;
 cpu  u_cpu 
 (
     .clock                   ( clock        ),
+    .reset                   ( reset ),
     .rData                   ( CC_rData        ),
     .hit                     ( hit          ),
 
@@ -25,6 +27,8 @@ cpu  u_cpu
 
 cache  u_cache 
 (
+    // .clock                   ( clock      ),
+    .reset                   (reset       ),
     .cpuRead                 ( CC_read    ),
     .cpuWrite                ( CC_write   ),
     .cpuAddr                 ( CC_addr    ),
@@ -42,6 +46,7 @@ cache  u_cache
 
 data_mem  u_data_mem (
     .clock                   ( clock        ),
+    .reset                   ( reset        ),
     .read                    ( CM_read      ),
     .write                   ( CM_write     ),
     .memAddr                 ( CM_addr   ),

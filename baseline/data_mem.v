@@ -2,6 +2,7 @@
 module data_mem
 (
   input clock,
+  input reset,
   input read,
   input write,
   input [9:0] memAddr,
@@ -25,14 +26,20 @@ end
 
 always @ (posedge clock)
 begin
-  memory[memAddr[9:2]] = `MEM_DELAY wData;
-  done = 1;
+  if(write == 1) begin
+    memory[memAddr[9:2]] = wData;
+    `MEM_DELAY;
+    done = 1;
+  end
 end
 
 always @ (posedge clock)
 begin
-  rData = `MEM_DELAY memory[memAddr[9:2]];
-  done = 1;
+  if(read == 1) begin
+    `MEM_DELAY;
+    rData =  memory[memAddr[9:2]];
+    done = 1;
+  end
 end
 
 always @ (negedge clock) 

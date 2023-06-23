@@ -1,5 +1,6 @@
 module cpu (
     input clock,
+    input reset,
     input [31:0] rData,
     input hit,
     output [9:0] Address,
@@ -9,10 +10,10 @@ module cpu (
 );
 
   reg [3:0] count;
-  reg rEnable[11:0];
-  reg wEnable[11:0];
-  reg [9:0] cacheAddr[11:0];
-  reg [31:0] memData[11:0];
+  reg rEnable[9:0];
+  reg wEnable[9:0];
+  reg [9:0] cacheAddr[9:0];
+  reg [31:0] memData[9:0];
 
   initial begin
     rEnable[0] = 1'b1;
@@ -37,7 +38,7 @@ module cpu (
     memData[4] = 'd345;
     rEnable[5] = 1'b0;
     wEnable[5] = 1'b1;
-    cacheAddr[5] = 10'b0111_00_11_00;
+    cacheAddr[5] = 10'b0011_00_11_00;
     memData[5] = 'd456;
     rEnable[6] = 1'b1;
     wEnable[6] = 1'b0;
@@ -45,7 +46,7 @@ module cpu (
     memData[6] = 'd0;
     rEnable[7] = 1'b1;
     wEnable[7] = 1'b0;
-    cacheAddr[7] = 10'b0111_10_11_01;
+    cacheAddr[7] = 10'b0011_10_11_01;
     memData[7] = 'd0;
     rEnable[8] = 1'b0;
     wEnable[8] = 1'b1;
@@ -53,7 +54,7 @@ module cpu (
     memData[8] = 'd567;
     rEnable[9] = 1'b0;
     wEnable[9] = 1'b1;
-    cacheAddr[9] = 10'b0001_00_01_11;
+    cacheAddr[9] = 10'b1101_00_01_11;
     memData[9] = 'd678;
     count = 0;
   end
