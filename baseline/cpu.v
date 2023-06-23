@@ -50,11 +50,11 @@ module cpu (
     memData[7] = 'd0;
     rEnable[8] = 1'b0;
     wEnable[8] = 1'b1;
-    cacheAddr[8] = 10'b1010_11_10_00;
+    cacheAddr[8] = 10'b0010_11_10_00;
     memData[8] = 'd567;
     rEnable[9] = 1'b0;
     wEnable[9] = 1'b1;
-    cacheAddr[9] = 10'b1101_00_01_11;
+    cacheAddr[9] = 10'b0001_00_01_11;
     memData[9] = 'd678;
     count = 0;
   end

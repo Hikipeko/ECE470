@@ -54,45 +54,48 @@ module cache (
   //assign hit = (valid[blockOffset] == 1'b0) ? 1'b0 : (tag[blockOffset] == cpuTag);
   always @(*) begin
     hit = 1'b0;
-    #0.1
       if (cpuRead == 1'b1) begin  //read case
         if (valid[blockOffset] == 1'b0 | tag[blockOffset] != cpuTag) begin  // miss
           if (dirty[blockOffset] == 1'b1) begin  //dirty
             write = 1;
+            #1 write = 0;
+            @(posedge done);
             addr  = {tag[blockOffset], cpuAddr[5:4], 4'b0000};
             wData = block0[blockOffset];
+            write = 1;
+            #1 write = 0;
             @(posedge done);
-            #1;
             addr  = {tag[blockOffset], cpuAddr[5:4], 4'b0100};
             wData = block1[blockOffset];
+            write = 1;
+            #1 write = 0;
             @(posedge done);
-            #1;
             addr  = {tag[blockOffset], cpuAddr[5:4], 4'b1000};
             wData = block2[blockOffset];
+            write = 1;
+            #1 write = 0;
             @(posedge done);
-            #1;
             addr  = {tag[blockOffset], cpuAddr[5:4], 4'b1100};
             wData = block3[blockOffset];
-            @(posedge done);
-            #1;
+            // write = 1;
           end
           write = 0;
           read  = 1;
           addr  = {cpuAddr[9:4], 4'b0000};
-          @(posedge done);
-          #1;
+          #1 read  = 0;
+          @(posedge done) read = 1;
           block0[blockOffset] = memData;
           addr = {cpuAddr[9:4], 4'b0100};
-          @(posedge done);
-          #1;
+          @(posedge done) read = 1;
+          #1 read  = 0;
           block1[blockOffset] = memData;
           addr = {cpuAddr[9:4], 4'b1000};
-          @(posedge done);
-          #1;
+          @(posedge done) read = 1;
+          #1 read  = 0;
           block2[blockOffset] = memData;
           addr = {cpuAddr[9:4], 4'b1100};
-          @(posedge done);
-          #1;
+          @(posedge done) read = 1;
+          #1 read  = 0;
           block3[blockOffset] = memData;
           read = 0;
           tag[blockOffset] = cpuTag;

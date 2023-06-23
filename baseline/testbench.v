@@ -10,6 +10,7 @@ module testbench;
   initial begin
     $dumpfile("test.vcd");
     $dumpvars(0, testbench);
+    // $dumpvars(0, testbench.top.data_mem);
 
     #0 clock = 1;
     #5000 $finish;
