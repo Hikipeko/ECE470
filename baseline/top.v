@@ -9,7 +9,7 @@ module top
 );
 wire [9:0] CC_addr,CM_addr;
 wire [31:0] CC_wData,CC_rData,CM_wData,CM_rData;
-wire CC_read,CC_write,hit,CM_read,CM_write,done;
+wire CC_read,CC_write,hit,CM_read,CM_write,done_w,done_r;
 
 
 cpu  u_cpu 
@@ -27,14 +27,14 @@ cpu  u_cpu
 
 cache  u_cache 
 (
-    // .clock                   ( clock      ),
     .reset                   (reset       ),
     .cpuRead                 ( CC_read    ),
     .cpuWrite                ( CC_write   ),
     .cpuAddr                 ( CC_addr    ),
     .cpuData                 ( CC_wData    ),
     .memData                 ( CM_rData    ),
-    .done                    ( done       ),
+    .done_w                  ( done_w      ),
+    .done_r                  ( done_r      ),
 
     .hit                     ( hit        ),
     .read                    ( CM_read       ),
@@ -53,7 +53,8 @@ data_mem  u_data_mem (
     .wData                   ( CM_wData     ),
 
     .rData                   ( CM_rData     ),
-    .done                    ( done      )
+    .done_w                  ( done_w      ),
+    .done_r                  ( done_r      )
 );
 
 

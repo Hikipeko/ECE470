@@ -8,7 +8,8 @@ module data_mem
   input [9:0] memAddr,
   input [31:0] wData,
   output reg [31:0] rData,
-  output reg done
+  output reg done_w,
+  output reg done_r
 );
 
 // content
@@ -17,7 +18,7 @@ integer i;
 //initialize the memory with 1 to 64
 initial 
 begin
-  #0 done = 0; rData = 'bz;
+  #0 done_w = 0;done_r = 0; rData = 'bz;
   for(i=0;i<64;i=i+1)
   begin
     memory[i]=i;
@@ -29,7 +30,7 @@ begin
   if(write == 1) begin
     memory[memAddr[9:2]] = wData;
     `MEM_DELAY;
-    done = 1;
+    done_w = 1;
   end
 end
 
@@ -38,12 +39,13 @@ begin
   if(read == 1) begin
     `MEM_DELAY;
     rData =  memory[memAddr[9:2]];
-    done = 1;
+    done_r = 1;
   end
 end
 
 always @ (negedge clock) 
 begin
-  done = 0;
+  done_w = 0;
+  done_r = 0;
 end
 endmodule

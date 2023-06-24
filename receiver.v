@@ -26,21 +26,32 @@ module receiver(
     input reset,
     input [`BANDWIDTH_WRITE_DATA-1:0] data_bus,
     output reg [`WORD_SIZE_BIT-1:0] data_out,
-    output reg write_data
+    output reg write
     );
     reg [`WORD_SIZE_BIT-1:0] data_receive_reg;
     reg [`WORD_SIZE_BIT-1:0] ptr;
+    reg write_counter;
     initial begin
         data_receive_reg = 0;
         ptr = 0;
-        write_data = 0;
+        write = 0;
         data_out = 0;
+        write_counter = 0;
     end
     always @(negedge(clk)) begin
-        if (send_data) begin
+        write = 0;
+        if (reset) begin
+            data_receive_reg = 0;
+            ptr = 0;
+            write = 0;
+            data_out = 0;
+            write_counter = 0;
+        end
+        else if (send_data) begin
             if (`WORD_SIZE_BIT-(ptr+1)*`BANDWIDTH_WRITE_DATA >= 0) begin
                 data_receive_reg[(`WORD_SIZE_BIT-(ptr+1)*`BANDWIDTH_WRITE_DATA) +: `BANDWIDTH_WRITE_DATA] = data_bus;
                 ptr = ptr + 1;
+                write_counter = 1;
             end
             else begin
                 ptr = ptr;
@@ -49,7 +60,8 @@ module receiver(
         else begin
             ptr = 0;
             data_out = data_receive_reg;
-            write_data = 1;
+            write = write_counter;
+            write_counter = 0;
         end
     end
 endmodule

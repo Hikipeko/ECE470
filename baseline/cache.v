@@ -6,7 +6,8 @@ module cache (
     input [9:0] cpuAddr,
     input [31:0] cpuData,
     input [31:0] memData,
-    input done,
+    input done_w,
+    input done_r,
 
     output reg hit,
     output reg read,
@@ -19,11 +20,7 @@ module cache (
   reg valid[3:0];
   reg dirty[3:0];
   reg [3:0] tag[3:0];
-  reg [31:0] block0[3:0];
-  reg [31:0] block1[3:0];
-  reg [31:0] block2[3:0];
-  reg [31:0] block3[3:0];
-  // reg [31:0] word;
+  reg [31:0] block[3:0][3:0];
 
   wire [1:0] blockOffset;
   wire [1:0] wordOffset;
@@ -38,10 +35,14 @@ module cache (
       dirty[i] = 1'b0;
       valid[i] = 1'b0;
       tag[i] = 4'b0;
-      block0[i] = 32'b0;
-      block1[i] = 32'b0;
-      block2[i] = 32'b0;
-      block3[i] = 32'b0;
+      // block0[i] = 32'b0;
+      // block1[i] = 32'b0;
+      // block2[i] = 32'b0;
+      // block3[i] = 32'b0;
+      block[0][i] = 32'b0;
+      block[1][i] = 32'b0;
+      block[2][i] = 32'b0;
+      block[3][i] = 32'b0;
     end
     hit   = 1'b0;
     read  = 1'b0;
@@ -51,66 +52,61 @@ module cache (
     wData = 'bz;
   end
 
-  //assign hit = (valid[blockOffset] == 1'b0) ? 1'b0 : (tag[blockOffset] == cpuTag);
   always @(*) begin
     hit = 1'b0;
+    #1
       if (cpuRead == 1'b1) begin  //read case
         if (valid[blockOffset] == 1'b0 | tag[blockOffset] != cpuTag) begin  // miss
           if (dirty[blockOffset] == 1'b1) begin  //dirty
             write = 1;
-            #1 write = 0;
-            @(posedge done);
             addr  = {tag[blockOffset], cpuAddr[5:4], 4'b0000};
-            wData = block0[blockOffset];
-            write = 1;
-            #1 write = 0;
-            @(posedge done);
+            wData = block[blockOffset][0];
+            #22 write = 0;
+            @(posedge done_w) write = 1;
             addr  = {tag[blockOffset], cpuAddr[5:4], 4'b0100};
-            wData = block1[blockOffset];
-            write = 1;
-            #1 write = 0;
-            @(posedge done);
+            wData = block[blockOffset][1];
+            #22 write = 0;
+            @(posedge done_w) write = 1;
             addr  = {tag[blockOffset], cpuAddr[5:4], 4'b1000};
-            wData = block2[blockOffset];
-            write = 1;
-            #1 write = 0;
-            @(posedge done);
+            wData = block[blockOffset][2];
+            #22 write = 0;
+            @(posedge done_w) write = 1;
             addr  = {tag[blockOffset], cpuAddr[5:4], 4'b1100};
-            wData = block3[blockOffset];
-            // write = 1;
+            wData = block[blockOffset][3];
+            #22 write = 0;
+            @(posedge done_w);
           end
-          write = 0;
           read  = 1;
           addr  = {cpuAddr[9:4], 4'b0000};
-          #1 read  = 0;
-          @(posedge done) read = 1;
-          block0[blockOffset] = memData;
+          #22 read = 0;
+          @(posedge done_r); read  = 1;
+          block[blockOffset][0] = memData;
           addr = {cpuAddr[9:4], 4'b0100};
-          @(posedge done) read = 1;
-          #1 read  = 0;
-          block1[blockOffset] = memData;
+          #22 read = 0;
+          @(posedge done_r); read  = 1;
+          block[blockOffset][1] = memData;
           addr = {cpuAddr[9:4], 4'b1000};
-          @(posedge done) read = 1;
-          #1 read  = 0;
-          block2[blockOffset] = memData;
+          #22 read = 0;
+          @(posedge done_r); read  = 1;
+          block[blockOffset][2] = memData;
           addr = {cpuAddr[9:4], 4'b1100};
-          @(posedge done) read = 1;
-          #1 read  = 0;
-          block3[blockOffset] = memData;
-          read = 0;
+          #22 read = 0;
+          @(posedge done_r);
+          block[blockOffset][3] = memData;
+
           tag[blockOffset] = cpuTag;
           valid[blockOffset] = 1'b1;
           dirty[blockOffset] = 1'b0;
         end
         begin  //hit
           if (wordOffset == 2'b00) begin
-            rData = block0[blockOffset];
+            rData = block[blockOffset][0];
           end else if (wordOffset == 2'b01) begin
-            rData = block1[blockOffset];
+            rData = block[blockOffset][1];
           end else if (wordOffset == 2'b10) begin
-            rData = block2[blockOffset];
+            rData = block[blockOffset][2];
           end else begin
-            rData = block3[blockOffset];
+            rData = block[blockOffset][3];
           end
           hit = 1'b1;
         end
@@ -119,41 +115,39 @@ module cache (
           if (dirty[blockOffset] == 1'b1) begin  //dirty
             write = 1;
             addr  = {tag[blockOffset], cpuAddr[5:4], 4'b0000};
-            wData = block0[blockOffset];
-            #1 write = 0;
-            @(posedge done) write = 1;
+            wData = block[blockOffset][0];
+            #22 write = 0;
+            @(posedge done_w) write = 1;
             addr  = {tag[blockOffset], cpuAddr[5:4], 4'b0100};
-            wData = block1[blockOffset];
-            #1 write = 0;
-            @(posedge done) write = 1;
+            wData = block[blockOffset][1];
+            #22 write = 0;
+            @(posedge done_w) write = 1;
             addr  = {tag[blockOffset], cpuAddr[5:4], 4'b1000};
-            wData = block2[blockOffset];
-            #1 write = 0;
-            @(posedge done) write = 1;
+            wData = block[blockOffset][2];
+            #22 write = 0;
+            @(posedge done_w) write = 1;
             addr  = {tag[blockOffset], cpuAddr[5:4], 4'b1100};
-            wData = block3[blockOffset];
-            #1 write = 0;
-            @(posedge done);
+            wData = block[blockOffset][3];
+            #22 write = 0;
+            @(posedge done_w);
           end
-          write = 0;
           read  = 1;
           addr  = {cpuAddr[9:4], 4'b0000};
-          #1 read = 0;
-          @(posedge done) read  = 1;
-          block0[blockOffset] = memData;
+          #22 read = 0;
+          @(posedge done_r) read  = 1;
+          block[blockOffset][0] = memData;
           addr = {cpuAddr[9:4], 4'b0100};
-          #1 read = 0;
-          @(posedge done) read  = 1;
-          block1[blockOffset] = memData;
+          #22 read = 0;
+          @(posedge done_r) read  = 1;
+          block[blockOffset][1] = memData;
           addr = {cpuAddr[9:4], 4'b1000};
-          #1 read = 0;
-          @(posedge done) read  = 1;
-          block2[blockOffset] = memData;
+          #22 read = 0;
+          @(posedge done_r) read  = 1;
+          block[blockOffset][2] = memData;
           addr = {cpuAddr[9:4], 4'b1100};
-          #1 read = 0;
-          @(posedge done) read  = 1;
-          block3[blockOffset] = memData;
-          #1 read = 0;
+          #22 read = 0;
+          @(posedge done_r);
+          block[blockOffset][3] = memData;
           
           tag[blockOffset] = cpuTag;
           valid[blockOffset] = 1'b1;
@@ -164,13 +158,13 @@ module cache (
           dirty[blockOffset] = 1'b1;
           tag[blockOffset]   = cpuTag;
           if (wordOffset == 2'b00) begin
-            block0[blockOffset] = cpuData;
+            block[blockOffset][0] = cpuData;
           end else if (wordOffset == 2'b01) begin
-            block1[blockOffset] = cpuData;
+            block[blockOffset][1] = cpuData;
           end else if (wordOffset == 2'b10) begin
-            block2[blockOffset] = cpuData;
+            block[blockOffset][2] = cpuData;
           end else begin
-            block3[blockOffset] = cpuData;
+            block[blockOffset][3] = cpuData;
           end
           hit = 1'b1;
         end
