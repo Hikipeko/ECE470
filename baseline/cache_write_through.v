@@ -1,6 +1,6 @@
 module cache
 (
-  input clock,
+  //input clock,
   input reset,
   input cpuRead,
   input cpuWrite,
