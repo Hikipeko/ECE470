@@ -14,7 +14,7 @@ module data_mem
 
 // content
 reg [31:0] memory [63:0];
-reg [3:0] k;
+// reg [3:0] k;
 integer i;
 //initialize the memory with 1 to 64
 initial 
@@ -38,12 +38,12 @@ end
 always @ (posedge clock)
 begin
   if(read == 1) begin
-    k = 1;
+    // k = 1;
     `MEM_DELAY;
     // k = 2;
     rData =  memory[memAddr[9:2]];
     done_r = 1;
-    k = 3;
+    // k = 3;
   end
 end
 
@@ -52,6 +52,6 @@ begin
   // k = 4;
   done_w = 0;
   done_r = 0;
-  k = 5;
+  // k = 5;
 end
 endmodule
