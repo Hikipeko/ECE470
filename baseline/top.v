@@ -27,7 +27,6 @@ cpu  u_cpu
 
 cache  u_cache 
 (
-    // .clock                   ( clock      ),
     .reset                   (reset       ),
     .cpuRead                 ( CC_read    ),
     .cpuWrite                ( CC_write   ),

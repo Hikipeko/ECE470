@@ -20,12 +20,7 @@ module cache (
   reg valid[3:0];
   reg dirty[3:0];
   reg [3:0] tag[3:0];
-  // reg [31:0] block0[3:0];
-  // reg [31:0] block1[3:0];
-  // reg [31:0] block2[3:0];
-  // reg [31:0] block3[3:0];
   reg [31:0] block[3:0][3:0];
-  // reg [31:0] word;
 
   wire [1:0] blockOffset;
   wire [1:0] wordOffset;
@@ -57,7 +52,6 @@ module cache (
     wData = 'bz;
   end
 
-  //assign hit = (valid[blockOffset] == 1'b0) ? 1'b0 : (tag[blockOffset] == cpuTag);
   always @(*) begin
     hit = 1'b0;
     #1
@@ -82,7 +76,6 @@ module cache (
             #22 write = 0;
             @(posedge done_w);
           end
-          // write = 0;
           read  = 1;
           addr  = {cpuAddr[9:4], 4'b0000};
           #22 read = 0;
@@ -138,7 +131,6 @@ module cache (
             #22 write = 0;
             @(posedge done_w);
           end
-          // write = 0;
           read  = 1;
           addr  = {cpuAddr[9:4], 4'b0000};
           #22 read = 0;
@@ -156,7 +148,6 @@ module cache (
           #22 read = 0;
           @(posedge done_r);
           block[blockOffset][3] = memData;
-          // #1 read = 0;
           
           tag[blockOffset] = cpuTag;
           valid[blockOffset] = 1'b1;
