@@ -61,7 +61,7 @@ module address_sender(
                 else if ($signed(`MEM_ADDR_SIZE-send_progress*`BANDWIDTH_WRITE_ADDRESS) > 0) begin
                     addr_bus = 0;
                     send_addr = 1;
-                    addr_bus[0 +: (`BANDWIDTH_WRITE_ADDRESS  % `BANDWIDTH_WRITE_ADDRESS)] = address_in[send_progress*`BANDWIDTH_WRITE_ADDRESS +: (`BANDWIDTH_WRITE_ADDRESS  % `BANDWIDTH_WRITE_ADDRESS)];
+                    addr_bus[0 +: (`MEM_ADDR_SIZE  % `BANDWIDTH_WRITE_ADDRESS)] = address_in[send_progress*`BANDWIDTH_WRITE_ADDRESS +: (`MEM_ADDR_SIZE  % `BANDWIDTH_WRITE_ADDRESS)];
                     send_progress = send_progress + 1;
                     done_addr = 0;
                 end
