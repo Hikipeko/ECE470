@@ -4,37 +4,35 @@ module cache
   input reset,
   input cpuRead,
   input cpuWrite,
-  input [9:0] cpuAddr,
-  input [31:0] cpuData,
-  input [31:0] memData,
+  input [`MEM_ADDR_SIZE-1:0] cpuAddr,
+  input [`WORD_SIZE_BIT-1:0] cpuData,
+  input [`WORD_SIZE_BIT-1:0] memData,
   input done_w,
   input done_r,
   
   output reg hit,
   output reg read,
   output reg write,
-  output reg [31:0] rData,
-  output reg [9:0] addr,
-  output reg [31:0] wData
+  output reg [`WORD_SIZE_BIT-1:0] rData,
+  output reg [`MEM_ADDR_SIZE-1:0] addr,
+  output reg [`WORD_SIZE_BIT-1:0] wData
 );
 
 reg valid [3:0];
 reg dirty [3:0];
-reg [3:0] tag [3:0];
-reg [31:0] block0 [3:0];
-reg [31:0] block1 [3:0];
-reg [31:0] block2 [3:0];
-reg [31:0] block3 [3:0];
+reg [`MEM_ADDR_SIZE-7:0] tag [3:0];
+
+
+reg [`WORD_SIZE_BIT-1:0] block [3:0][3:0];
 
 wire [1:0] blockOffset;
 wire [1:0] wordOffset;
-wire [3:0] tag_temp;
+wire [`MEM_ADDR_SIZE-7:0] tag_temp;
 
 assign blockOffset = cpuAddr[5:4];
 assign wordOffset = cpuAddr[3:2];
-assign tag_temp=cpuAddr[9:6];
-assign wordAddr=cpuAddr[9:2];
-assign blockAddr=cpuAddr[9:4];
+assign tag_temp=cpuAddr[`WORD_SIZE_BIT-1:6];
+//assign blockAddr=cpuAddr[9:4];
 //assign hit=(tag_temp==tag[blockOffset])&&(valid[blockOffset]==1'b1);
 
 
@@ -47,10 +45,10 @@ begin
   dirty[i] = 1'b0;
   valid[i] = 1'b0;
   tag[i] = 4'b0;
-  block0[i] = 32'b0;
-  block1[i] = 32'b0;
-  block2[i] = 32'b0; 
-  block3[i] = 32'b0;
+  block[0][i] = 32'b0;
+  block[1][i] = 32'b0;
+  block[2][i] = 32'b0; 
+  block[3][i] = 32'b0;
   
 end
   hit = 1'b0;
@@ -68,60 +66,64 @@ always @( *)begin
   if (cpuRead==1'b1)begin// read data 
       if ( (tag_temp==tag[blockOffset])&&(valid[blockOffset]==1'b1)) begin //case of hit
           case (blockOffset)
-              2'b00: rData =  block0[wordOffset][31:0];
-              2'b01: rData = block1[wordOffset][31:0];
-              2'b10: rData = block2[wordOffset][31:0];
-              2'b11: rData = block3[wordOffset][31:0];
+              2'b00: rData =  block[0][wordOffset][31:0];
+              2'b01: rData = block[1][wordOffset][31:0];
+              2'b10: rData = block[2][wordOffset][31:0];
+              2'b11: rData = block[3][wordOffset][31:0];
           endcase
           hit=1;
       end else begin //case of miss
+          
+      
+      
+      
           hit =0;
           read=1;
           write=0;//read for the whole block
-          addr={cpuAddr[9:4],4'b0000};
+          addr={cpuAddr[`MEM_ADDR_SIZE-1:4],4'b0000};
           #22 read=0;
           @ (posedge done_r) read=1;
           case (blockOffset)
-              2'b00: block0[0][31:0]=memData;
-              2'b01: block1[0][31:0]=memData;
-              2'b10: block2[0][31:0]=memData;
-              2'b11: block3[0][31:0]=memData;
+              2'b00: block[0][0][31:0]=memData;
+              2'b01: block[1][0][31:0]=memData;
+              2'b10: block[2][0][31:0]=memData;
+              2'b11: block[3][0][31:0]=memData;
           endcase
           
           
           
-          addr={cpuAddr[9:4],4'b0100};
+          addr={cpuAddr[`MEM_ADDR_SIZE-1:4],4'b0100};
           #22 read=0;
           @ (posedge done_r) read=1;
           case (blockOffset)
-              2'b00: block0[1][31:0]=memData;
-              2'b01: block1[1][31:0]=memData;
-              2'b10: block2[1][31:0]=memData;
-              2'b11: block3[1][31:0]=memData;
+              2'b00: block[0][1][31:0]=memData;
+              2'b01: block[1][1][31:0]=memData;
+              2'b10: block[2][1][31:0]=memData;
+              2'b11: block[3][1][31:0]=memData;
           endcase
           #10
           
           
-          addr={cpuAddr[9:4],4'b1000};
+          addr={cpuAddr[`MEM_ADDR_SIZE-1:4],4'b1000};
           #22 read=0;
           @ (posedge done_r) read=1;
           case (blockOffset)
-              2'b00: block0[2][31:0]=memData;
-              2'b01: block1[2][31:0]=memData;
-              2'b10: block2[2][31:0]=memData;
-              2'b11: block3[2][31:0]=memData;
+              2'b00: block[0][2][31:0]=memData;
+              2'b01: block[1][2][31:0]=memData;
+              2'b10: block[2][2][31:0]=memData;
+              2'b11: block[3][2][31:0]=memData;
           endcase
           #10
           
          
-          addr={cpuAddr[9:4],4'b1111};
+          addr={cpuAddr[`MEM_ADDR_SIZE-1:4],4'b1111};
           #22 read=0;
           @ (posedge done_r) read=1;
           case (blockOffset)
-              2'b00: block0[3][31:0]=memData;
-              2'b01: block1[3][31:0]=memData;
-              2'b10: block2[3][31:0]=memData;
-              2'b11: block3[3][31:0]=memData;
+              2'b00: block[0][3][31:0]=memData;
+              2'b01: block[1][3][31:0]=memData;
+              2'b10: block[2][3][31:0]=memData;
+              2'b11: block[3][3][31:0]=memData;
           endcase
          
           
@@ -129,10 +131,10 @@ always @( *)begin
           valid[blockOffset]=1;
           // read data from the block
           case (blockOffset)
-              2'b00: rData =  block0[wordOffset][31:0];
-              2'b01: rData = block1[wordOffset][31:0];
-              2'b10: rData = block2[wordOffset][31:0];
-              2'b11: rData = block3[wordOffset][31:0];
+              2'b00: rData =  block[0][wordOffset][31:0];
+              2'b01: rData = block[1][wordOffset][31:0];
+              2'b10: rData = block[2][wordOffset][31:0];
+              2'b11: rData = block[3][wordOffset][31:0];
           endcase
           hit=1;
       end
@@ -141,10 +143,10 @@ always @( *)begin
   if (cpuWrite==1'b1)begin
       if ( (tag_temp==tag[blockOffset])&&(valid[blockOffset]==1'b1)) begin  // case of hit
           case (blockOffset) // change data in block
-              2'b00: block0[wordOffset][31:0]=cpuData;
-              2'b01: block1[wordOffset][31:0]=cpuData;
-              2'b10: block2[wordOffset][31:0]=cpuData;
-              2'b11: block3[wordOffset][31:0]=cpuData;
+              2'b00: block[0][wordOffset][31:0]=cpuData;
+              2'b01: block[1][wordOffset][31:0]=cpuData;
+              2'b10: block[2][wordOffset][31:0]=cpuData;
+              2'b11: block[3][wordOffset][31:0]=cpuData;
           endcase
           read=0;
           write=1; // write through, change data in memory
@@ -158,50 +160,50 @@ always @( *)begin
           hit =0;
           read=1;// read data for the whole block from the memory
           write=0;
-          addr={cpuAddr[9:4],4'b0000};
+          addr={cpuAddr[`MEM_ADDR_SIZE-1:4],4'b0000};
           #22 read = 0;
           @(posedge done_r) read  = 1;
           case (blockOffset)
-              2'b00: block0[0][31:0]=memData;
-              2'b01: block1[0][31:0]=memData;
-              2'b10: block2[0][31:0]=memData;
-              2'b11: block3[0][31:0]=memData;
+              2'b00: block[0][0][31:0]=memData;
+              2'b01: block[1][0][31:0]=memData;
+              2'b10: block[2][0][31:0]=memData;
+              2'b11: block[3][0][31:0]=memData;
           endcase
          
           
           
-          addr={cpuAddr[9:4],4'b0100};
+          addr={cpuAddr[`MEM_ADDR_SIZE-1:4],4'b0100};
           #22 read = 0;
           @(posedge done_r) read  = 1;
        
           case (blockOffset)
-              2'b00: block0[1][31:0]=memData;
-              2'b01: block1[1][31:0]=memData;
-              2'b10: block2[1][31:0]=memData;
-              2'b11: block3[1][31:0]=memData;
+              2'b00: block[0][1][31:0]=memData;
+              2'b01: block[1][1][31:0]=memData;
+              2'b10: block[2][1][31:0]=memData;
+              2'b11: block[3][1][31:0]=memData;
           endcase
           
           
           
-          addr={cpuAddr[9:4],4'b1000};
+          addr={cpuAddr[`MEM_ADDR_SIZE-1:4],4'b1000};
           #22 read = 0;
           @(posedge done_r) read  = 1;
           case (blockOffset)
-              2'b00: block0[2][31:0]=memData;
-              2'b01: block1[2][31:0]=memData;
-              2'b10: block2[2][31:0]=memData;
-              2'b11: block3[2][31:0]=memData;
+              2'b00: block[0][2][31:0]=memData;
+              2'b01: block[1][2][31:0]=memData;
+              2'b10: block[2][2][31:0]=memData;
+              2'b11: block[3][2][31:0]=memData;
           endcase
           
           
-          addr={cpuAddr[9:4],4'b1111};
+          addr={cpuAddr[`MEM_ADDR_SIZE-1:4],4'b1111};
           #22 read = 0;
           @(posedge done_r) read  = 1;
           case (blockOffset)
-              2'b00: block0[3][31:0]=memData;
-              2'b01: block1[3][31:0]=memData;
-              2'b10: block2[3][31:0]=memData;
-              2'b11: block3[3][31:0]=memData;
+              2'b00: block[0][3][31:0]=memData;
+              2'b01: block[1][3][31:0]=memData;
+              2'b10: block[2][3][31:0]=memData;
+              2'b11: block[3][3][31:0]=memData;
           endcase
           
           
@@ -209,10 +211,10 @@ always @( *)begin
           valid[blockOffset]=1;
           
           case (blockOffset) //write data into the block
-              2'b00: block0[wordOffset][31:0]=cpuData;
-              2'b01: block1[wordOffset][31:0]=cpuData;
-              2'b10: block2[wordOffset][31:0]=cpuData;
-              2'b11: block3[wordOffset][31:0]=cpuData;
+              2'b00: block[0][wordOffset][31:0]=cpuData;
+              2'b01: block[1][wordOffset][31:0]=cpuData;
+              2'b10: block[2][wordOffset][31:0]=cpuData;
+              2'b11: block[3][wordOffset][31:0]=cpuData;
           endcase
           read=0;
           write=1; // write through, write data into memory
