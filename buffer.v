@@ -25,13 +25,17 @@ module buffer(
     input reset,
     input [`MEM_ADDR_SIZE-1 : 0] write_back_address,
     input [`WORD_SIZE_BIT-1 : 0] write_back_data,
-    input write,
+    input write,//read and write can't be 1 at the same time.
     input byte_type,
     input done,
     input addr_done,
+    input read,//read and write can't be 1 at the same time.
     output reg full,
+    output write_out,
+    output buffer_hit, //1 when read = 1 and the address of the desired read is in the buffer
     output reg [`WORD_SIZE_BIT-1:0] write_data,
     output reg [`MEM_ADDR_SIZE-1:0] write_address,
+    output [`WORD_SIZE_BIT-1:0] data_read_to_cache, //data output corresponding to read input signal
     output reg send_wr_data,
     output reg send_wr_addr
 );
@@ -41,7 +45,7 @@ module buffer(
     reg [2:0] count,count_addr;
     reg addr_history_done;
     initial begin
-        for (i = 0; i < 4; i = i + 1)begin
+        for (i = 0; i < 4; i = i + 1) begin
             buffer_line_data[i] = 0;
             buffer_line_address[i] = 0;
         end
@@ -104,15 +108,15 @@ module buffer(
                 buffer_line_data[3] = 0;
                 count = count - 1;
                 addr_history_done = 0;
-            end
-            if (addr_done) begin
-                send_wr_addr = 0;
-                write_address = 0;
                 for (i = 0; i < 3; i = i + 1) begin
                     buffer_line_address[i] = buffer_line_address[i+1];
                 end
                 buffer_line_address[3] = 0;
                 count_addr = count_addr - 1;
+            end
+            if (addr_done) begin
+                send_wr_addr = 0;
+                write_address = 0;
                 addr_history_done = 1;
             end
         end
@@ -123,4 +127,15 @@ module buffer(
             send_wr_addr = !addr_history_done;
         end
     end
+
+    assign write_out = (count > 0);
+
+    assign {buffer_hit,data_read_to_cache} = (read) ? 
+                        ((write_back_address == buffer_line_address[0]) ? {1,buffer_line_data[0]} : 
+                            (write_back_address == buffer_line_address[1]) ? {1,buffer_line_data[1]} : 
+                                (write_back_address == buffer_line_address[2]) ? {1,buffer_line_data[2]} :
+                                    (write_back_address == buffer_line_address[3]) ? {1,buffer_line_data[3]} : {0,0}):
+                                        {0,0}
+                        ;
+
 endmodule

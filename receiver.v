@@ -22,34 +22,42 @@
 
 module receiver(
     input clk,
-    input send_data,//tell receiver to start receiving
+    input send,//tell receiver to start receiving
     input reset,
-    input [`BANDWIDTH_WRITE_DATA-1:0] data_bus,
+    input write_in,
+    input [`BANDWIDTH_WRITE_ADDRESS-1:0] bus,
+    output reg [`MEM_ADDR_SIZE-1:0] addr_out,
     output reg [`WORD_SIZE_BIT-1:0] data_out,
-    output reg write
+    output reg write,
+    output reg read
     );
-    reg [`WORD_SIZE_BIT-1:0] data_receive_reg;
-    reg [`WORD_SIZE_BIT-1:0] ptr;
+    reg [`WORD_SIZE_BIT + `MEM_ADDR_SIZE+`BANDWIDTH_WRITE_ADDRESS-1:0] receive_reg;
+    reg [`WORD_SIZE_BIT + `MEM_ADDR_SIZE - 1:0] ptr;
     reg write_counter;
     initial begin
-        data_receive_reg = 0;
+        receive_reg = 0;
         ptr = 0;
         write = 0;
+        read = 0;
+        addr_out = 0;
         data_out = 0;
         write_counter = 0;
     end
     always @(negedge(clk)) begin
         write = 0;
+        read = 0;
         if (reset) begin
-            data_receive_reg = 0;
+            receive_reg = 0;
             ptr = 0;
             write = 0;
+            read = 0;
+            addr_out = 0;
             data_out = 0;
             write_counter = 0;
         end
-        else if (send_data) begin
-            if (`WORD_SIZE_BIT-(ptr+1)*`BANDWIDTH_WRITE_DATA >= 0) begin
-                data_receive_reg[(`WORD_SIZE_BIT-(ptr+1)*`BANDWIDTH_WRITE_DATA) +: `BANDWIDTH_WRITE_DATA] = data_bus;
+        else if (send) begin
+            if (`WORD_SIZE_BIT + `MEM_ADDR_SIZE-(ptr+1)*`BANDWIDTH_WRITE_ADDRESS >= 0 || ptr == 0) begin
+                receive_reg[(ptr*`BANDWIDTH_WRITE_ADDRESS) +: `BANDWIDTH_WRITE_ADDRESS] = bus;
                 ptr = ptr + 1;
                 write_counter = 1;
             end
@@ -59,8 +67,10 @@ module receiver(
         end
         else begin
             ptr = 0;
-            data_out = data_receive_reg;
-            write = write_counter;
+            addr_out = receive_reg[`WORD_SIZE_BIT +: `MEM_ADDR_SIZE];
+            data_out = receive_reg[0 +: `WORD_SIZE_BIT];
+            write = write_counter && write_in;
+            read = write_counter && (!write_in);
             write_counter = 0;
         end
     end

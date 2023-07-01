@@ -25,48 +25,67 @@ module sender(
     input send,//tells sender to start sending
     input reset,
     input [`WORD_SIZE_BIT-1:0] data_in,
-    output reg [`BANDWIDTH_WRITE_DATA-1:0] data_bus,
-    output reg send_data, // to receiver module, 1 tells the receiver to start receiving
-    output reg done_data // to buffer or memory, 1 to indicate transmission finishs.
+    input [`MEM_ADDR_SIZE-1:0] addr_in,
+    input write,
+    output reg [`BANDWIDTH_WRITE_ADDRESS-1:0] bus,
+    output reg send_bus, // to receiver module, 1 tells the receiver to start receiving
+    output reg write_to_rec,
+    output reg done // to buffer or memory, 1 to indicate transmission finishs.
 );
     reg [10:0] send_progress;
-    reg [`WORD_SIZE_BIT-1:0] word_in;
+    reg [`WORD_SIZE_BIT+`MEM_ADDR_SIZE-1:0] message_in;
     integer i,j;
+
     initial begin
-        data_bus = 0;
-        send_data = 0;
-        done_data = 0;
+        bus = 0;
+        send_bus = 0;
+        done = 0;
         send_progress = 0;
-        word_in = 0;
-    end
-    always@(data_in) begin
-        word_in = data_in;
+        message_in = 0;
     end
     always@(posedge clk) begin
         if (reset) begin
-            send_data = 0;
-            data_bus = 0;
-            done_data = 0;
+            bus = 0;
+            send_bus = 0;
+            done = 0;
             send_progress = 0;
-            word_in = 0;
+            message_in = 0;
         end
         else begin
+            if (!write) begin
+                message_in = 0;
+                message_in[`WORD_SIZE_BIT +: `MEM_ADDR_SIZE] = addr_in;
+            end
+            else begin
+                message_in = {addr_in, data_in};
+            end
             if (send) begin
-                if($signed(`WORD_SIZE_BIT-(send_progress+1)*`BANDWIDTH_WRITE_DATA) >= 0) begin
-                    send_data = 1;
-                    data_bus = word_in[(`WORD_SIZE_BIT-(send_progress+1)*`BANDWIDTH_WRITE_DATA) +: `BANDWIDTH_WRITE_DATA];
+                if($signed(`WORD_SIZE_BIT+`MEM_ADDR_SIZE-(send_progress+1)*`BANDWIDTH_WRITE_ADDRESS) >= 0) begin
+                    send_bus = 1;
+                    bus = message_in[(send_progress*`BANDWIDTH_WRITE_ADDRESS) +: `BANDWIDTH_WRITE_ADDRESS];
                     send_progress = send_progress + 1;
-                    done_data = 0;
+                    write_to_rec = write;
+                    done = 0;
+                end
+                else if ($signed(`WORD_SIZE_BIT+`MEM_ADDR_SIZE-send_progress*`BANDWIDTH_WRITE_ADDRESS) > 0) begin
+                    bus = 0;
+                    send_bus = 1;
+                    bus[0 +: ((`WORD_SIZE_BIT+`MEM_ADDR_SIZE)  % `BANDWIDTH_WRITE_ADDRESS)] = message_in[send_progress*`BANDWIDTH_WRITE_ADDRESS +: ((`WORD_SIZE_BIT+`MEM_ADDR_SIZE)  % `BANDWIDTH_WRITE_ADDRESS)];
+                    send_progress = send_progress + 1;
+                    write_to_rec = write;
+                    done = 0;
                 end
                 else begin
-                    done_data = 1;
-                    send_data = 0;
+                    done = 1;
+                    send_bus = 0;
+                    write_to_rec = write;
                     send_progress = 0;
                 end
             end
             else begin
-                send_data = 0;
-                done_data = 0;
+                done = 0;
+                send_bus = 0;
+                write_to_rec = 0;
                 send_progress = 0;
             end
         end
