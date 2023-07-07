@@ -13,7 +13,7 @@ module testbench;
     // $dumpvars(0, testbench.top.data_mem);
 
     #0 clock = 1;
-    #5000 $finish;
+    #15000 $finish;
   end
 
   integer j = 0;
