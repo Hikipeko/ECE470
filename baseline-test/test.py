@@ -61,17 +61,33 @@ module_content += '''
 endmodule
 '''
 
-shutil.rmtree('./temp')
-if not os.path.exists('temp'):
-    os.makedirs('temp')
+# make directories for testing
+def make_clean(dir):
+    if os.path.exists(dir):
+        shutil.rmtree(dir)
+    os.mkdir(dir)
+    return
 
-with open('./temp/cpu.v', 'w') as file:
+baseline_testdir = './temp-baseline'
+writebuf_testdir = './temp-writebuf'
+make_clean(baseline_testdir)
+make_clean(writebuf_testdir)
+
+with open(baseline_testdir + '/cpu.v', 'w') as file:
     file.write(module_content)
 
+with open(writebuf_testdir + '/cpu.v', 'w') as file:
+    file.write(module_content)
+
+# move other files to baseline_testdir
 if args.write_through:
     files_to_move = ['cache_write_through.v', 'data_mem.v', 'testbench.v', 'top.v', 'sys_defs.vh']
 else:
     files_to_move = ['cache.v', 'data_mem.v', 'testbench.v', 'top.v', 'sys_defs.vh']
-
 for file in files_to_move:
-    shutil.copy(f'../baseline/{file}', f'./temp/{file}')
+    shutil.copy(f'../baseline/{file}', f'{baseline_testdir}/{file}')
+
+# move other files to writebuf_testdir
+files_to_move = ['cache.v', 'data_mem.v', 'testbench.v', 'top.v', 'sys_defs.vh', 'sender.v', 'receiver.v']
+for file in files_to_move:
+    shutil.copy(f'../cache_with_sender_receiver/{file}', f'{writebuf_testdir}/{file}')
