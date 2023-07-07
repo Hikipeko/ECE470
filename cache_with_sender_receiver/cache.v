@@ -1,4 +1,3 @@
-`timescale 1ns / 1ps
 `include"sys_defs.vh"
 module cache (
     input clock,
@@ -8,8 +7,6 @@ module cache (
     input [`MEM_ADDR_SIZE-1:0] cpuAddr,
     input [`WORD_SIZE_BIT-1:0] cpuData,
     input [`WORD_SIZE_BIT-1:0] memData,
-    /*input done_w,
-    input done_r,*/
     input done_sender,
     input write_receiver,
     input read_receiver,
@@ -36,13 +33,6 @@ module cache (
   reg [`WORD_SIZE_BIT-1:0] data2mem_reg[3:0];
   reg [4:0] counter_send, counter_read, receiver_counter;
   reg block_transmission_done;
-  
-  wire [1:0] blockOffset;
-  wire [1:0] wordOffset;
-  wire [`MEM_ADDR_SIZE-7:0] cpuTag;
-  assign blockOffset = cpuAddr[5:4];
-  assign wordOffset = cpuAddr[3:2];
-  assign cpuTag = cpuAddr[`WORD_SIZE_BIT-1:6];
 
   integer i;
   initial begin
@@ -72,38 +62,20 @@ module cache (
 
   always @(reset or cpuRead or cpuWrite or cpuAddr or cpuData or block_transmission_done) begin
     hit = 1'b0;
-    #1
       if (cpuRead == 1'b1) begin  //read case
-        if (valid[blockOffset] == 1'b0 | tag[blockOffset] != cpuTag) begin  // miss
-          if (dirty[blockOffset] == 1'b1) begin  //dirty
+        if (valid[cpuAddr[5:4]] == 1'b0 | tag[cpuAddr[5:4]] != cpuAddr[`MEM_ADDR_SIZE-1:6]) begin  // miss
+          if (dirty[cpuAddr[5:4]] == 1'b1) begin  //dirty
             if (counter_send == 0) begin
                 counter_send = 4;
-                addr2mem_reg[0] = {tag[blockOffset], cpuAddr[5:4], 4'b0000};
-                data2mem_reg[0] = block[blockOffset][0];
-                addr2mem_reg[1]  = {tag[blockOffset], cpuAddr[5:4], 4'b0100};
-                data2mem_reg[1] = block[blockOffset][1];
-                addr2mem_reg[2]  = {tag[blockOffset], cpuAddr[5:4], 4'b1000};
-                data2mem_reg[2] = block[blockOffset][2];
-                addr2mem_reg[3]  = {tag[blockOffset], cpuAddr[5:4], 4'b1100};
-                data2mem_reg[3] = block[blockOffset][3];
+                addr2mem_reg[0] = {tag[cpuAddr[5:4]], cpuAddr[5:4], 4'b0000};
+                data2mem_reg[0] = block[cpuAddr[5:4]][0];
+                addr2mem_reg[1]  = {tag[cpuAddr[5:4]], cpuAddr[5:4], 4'b0100};
+                data2mem_reg[1] = block[cpuAddr[5:4]][1];
+                addr2mem_reg[2]  = {tag[cpuAddr[5:4]], cpuAddr[5:4], 4'b1000};
+                data2mem_reg[2] = block[cpuAddr[5:4]][2];
+                addr2mem_reg[3]  = {tag[cpuAddr[5:4]], cpuAddr[5:4], 4'b1100};
+                data2mem_reg[3] = block[cpuAddr[5:4]][3];
             end
-            /*write = 1;
-            addr  = {tag[blockOffset], cpuAddr[5:4], 4'b0000};
-            wData = block[blockOffset][0];
-            #22 write = 0;
-            @(posedge done_w) write = 1;
-            addr  = {tag[blockOffset], cpuAddr[5:4], 4'b0100};
-            wData = block[blockOffset][1];
-            #22 write = 0;
-            @(posedge done_w) write = 1;
-            addr  = {tag[blockOffset], cpuAddr[5:4], 4'b1000};
-            wData = block[blockOffset][2];
-            #22 write = 0;
-            @(posedge done_w) write = 1;
-            addr  = {tag[blockOffset], cpuAddr[5:4], 4'b1100};
-            wData = block[blockOffset][3];
-            #22 write = 0;
-            @(posedge done_w);*/
           end
           if (counter_read == 0) begin
             counter_read = 4;
@@ -112,71 +84,33 @@ module cache (
             addrrdmem_reg[2] = {cpuAddr[9:4], 4'b1000};
             addrrdmem_reg[3] = {cpuAddr[9:4], 4'b1100};
           end
-          /*read  = 1;
-          addr  = {cpuAddr[9:4], 4'b0000};
-          #22 read = 0;
-          @(posedge done_r); read  = 1;
-          block[blockOffset][0] = memData;
-          addr = {cpuAddr[9:4], 4'b0100};
-          #22 read = 0;
-          @(posedge done_r); read  = 1;
-          block[blockOffset][1] = memData;
-          addr = {cpuAddr[9:4], 4'b1000};
-          #22 read = 0;
-          @(posedge done_r); read  = 1;
-          block[blockOffset][2] = memData;
-          addr = {cpuAddr[9:4], 4'b1100};
-          #22 read = 0;
-          @(posedge done_r);
-          block[blockOffset][3] = memData;
-
-          tag[blockOffset] = cpuTag;
-          valid[blockOffset] = 1'b1;
-          dirty[blockOffset] = 1'b0;*/
         end
         else begin  //hit
-          if (wordOffset == 2'b00) begin
-            rData = block[blockOffset][0];
-          end else if (wordOffset == 2'b01) begin
-            rData = block[blockOffset][1];
-          end else if (wordOffset == 2'b10) begin
-            rData = block[blockOffset][2];
+          if (cpuAddr[3:2] == 2'b00) begin
+            rData = block[cpuAddr[5:4]][0];
+          end else if (cpuAddr[3:2] == 2'b01) begin
+            rData = block[cpuAddr[5:4]][1];
+          end else if (cpuAddr[3:2] == 2'b10) begin
+            rData = block[cpuAddr[5:4]][2];
           end else begin
-            rData = block[blockOffset][3];
+            rData = block[cpuAddr[5:4]][3];
           end
           hit = 1'b1;
         end
       end else if (cpuWrite == 1'b1) begin  //write case
-        if (valid[blockOffset] == 1'b0 | tag[blockOffset] != cpuTag) begin  // miss
-          if (dirty[blockOffset] == 1'b1) begin  //dirty
+        if (valid[cpuAddr[5:4]] == 1'b0 | tag[cpuAddr[5:4]] != cpuAddr[`MEM_ADDR_SIZE-1:6]) begin  // miss
+          if (dirty[cpuAddr[5:4]] == 1'b1) begin  //dirty
             if (counter_send == 0) begin
                 counter_send = 4;
-                addr2mem_reg[0] = {tag[blockOffset], cpuAddr[5:4], 4'b0000};
-                data2mem_reg[0] = block[blockOffset][0];
-                addr2mem_reg[1]  = {tag[blockOffset], cpuAddr[5:4], 4'b0100};
-                data2mem_reg[1] = block[blockOffset][1];
-                addr2mem_reg[2]  = {tag[blockOffset], cpuAddr[5:4], 4'b1000};
-                data2mem_reg[2] = block[blockOffset][2];
-                addr2mem_reg[3]  = {tag[blockOffset], cpuAddr[5:4], 4'b1100};
-                data2mem_reg[3] = block[blockOffset][3];
+                addr2mem_reg[0] = {tag[cpuAddr[5:4]], cpuAddr[5:4], 4'b0000};
+                data2mem_reg[0] = block[cpuAddr[5:4]][0];
+                addr2mem_reg[1]  = {tag[cpuAddr[5:4]], cpuAddr[5:4], 4'b0100};
+                data2mem_reg[1] = block[cpuAddr[5:4]][1];
+                addr2mem_reg[2]  = {tag[cpuAddr[5:4]], cpuAddr[5:4], 4'b1000};
+                data2mem_reg[2] = block[cpuAddr[5:4]][2];
+                addr2mem_reg[3]  = {tag[cpuAddr[5:4]], cpuAddr[5:4], 4'b1100};
+                data2mem_reg[3] = block[cpuAddr[5:4]][3];
             end
-            /*write = 1;
-            addr  = {tag[blockOffset], cpuAddr[5:4], 4'b0000};
-            wData = block[blockOffset][0];
-            #22 write = 0;
-            @(posedge done_w) write = 1;
-            addr  = {tag[blockOffset], cpuAddr[5:4], 4'b0100};
-            wData = block[blockOffset][1];
-            #22 write = 0;
-            @(posedge done_w) write = 1;
-            addr  = {tag[blockOffset], cpuAddr[5:4], 4'b1000};
-            wData = block[blockOffset][2];
-            #22 write = 0;
-            @(posedge done_w) write = 1;
-            addr  = {tag[blockOffset], cpuAddr[5:4], 4'b1100};
-            wData = block[blockOffset][3];
-            #22 write = 0;
-            @(posedge done_w);*/
           end
           if (counter_read == 0) begin
             counter_read = 4;
@@ -185,40 +119,19 @@ module cache (
             addrrdmem_reg[2] = {cpuAddr[9:4], 4'b1000};
             addrrdmem_reg[3] = {cpuAddr[9:4], 4'b1100};
           end
-          /*read  = 1;
-          addr  = {cpuAddr[9:4], 4'b0000};
-          #22 read = 0;
-          @(posedge done_r) read  = 1;
-          block[blockOffset][0] = memData;
-          addr = {cpuAddr[9:4], 4'b0100};
-          #22 read = 0;
-          @(posedge done_r) read  = 1;
-          block[blockOffset][1] = memData;
-          addr = {cpuAddr[9:4], 4'b1000};
-          #22 read = 0;
-          @(posedge done_r) read  = 1;
-          block[blockOffset][2] = memData;
-          addr = {cpuAddr[9:4], 4'b1100};
-          #22 read = 0;
-          @(posedge done_r);
-          block[blockOffset][3] = memData;
-          
-          tag[blockOffset] = cpuTag;
-          valid[blockOffset] = 1'b1;
-          dirty[blockOffset] = 1'b0;*/
         end
         else begin  //hit
-          valid[blockOffset] = 1'b1;
-          dirty[blockOffset] = 1'b1;
-          tag[blockOffset]   = cpuTag;
-          if (wordOffset == 2'b00) begin
-            block[blockOffset][0] = cpuData;
-          end else if (wordOffset == 2'b01) begin
-            block[blockOffset][1] = cpuData;
-          end else if (wordOffset == 2'b10) begin
-            block[blockOffset][2] = cpuData;
+          valid[cpuAddr[5:4]] = 1'b1;
+          dirty[cpuAddr[5:4]] = 1'b1;
+          tag[cpuAddr[5:4]]   = cpuAddr[`MEM_ADDR_SIZE-1:6];
+          if (cpuAddr[3:2] == 2'b00) begin
+            block[cpuAddr[5:4]][0] = cpuData;
+          end else if (cpuAddr[3:2] == 2'b01) begin
+            block[cpuAddr[5:4]][1] = cpuData;
+          end else if (cpuAddr[3:2] == 2'b10) begin
+            block[cpuAddr[5:4]][2] = cpuData;
           end else begin
-            block[blockOffset][3] = cpuData;
+            block[cpuAddr[5:4]][3] = cpuData;
           end
           hit = 1'b1;
         end
@@ -228,13 +141,13 @@ module cache (
     //always @(done_sender or write_receiver or read_receiver or addr2mem_reg or addrrdmem_reg or data2mem_reg) begin// no memData
     always @(posedge clock) begin
         if (write_receiver) begin
-            block[blockOffset][receiver_counter] = memData;
+            block[cpuAddr[5:4]][receiver_counter] = memData;
             if (receiver_counter == 3) begin
                 block_transmission_done = 1;
                 receiver_counter = 0;
-                tag[blockOffset] = cpuTag;
-                valid[blockOffset] = 1'b1;
-                dirty[blockOffset] = 1'b0;
+                tag[cpuAddr[5:4]] = cpuAddr[`MEM_ADDR_SIZE-1:6];
+                valid[cpuAddr[5:4]] = 1'b1;
+                dirty[cpuAddr[5:4]] = 1'b0;
             end
             else begin
                 receiver_counter = receiver_counter + 1;
@@ -277,5 +190,4 @@ module cache (
             end
         end
     end
-
 endmodule
