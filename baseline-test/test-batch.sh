@@ -6,7 +6,7 @@ for (( i=0; i<runs; i++ )); do
   ./test.sh
   if [ $? -ne 0 ]; then
       echo break at i = $i
-      mkdir failure
+      mkdir -p failure
       cp -r temp-baseline failure
       cp -r temp-writebuf failure
       timestamp=$(date +"%Y%m%d%H%M%S")
