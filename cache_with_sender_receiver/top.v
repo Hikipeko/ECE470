@@ -1,6 +1,8 @@
 `include "cache.v"
 `include "cpu.v"
 `include "data_mem.v"
+`include "receiver.v"
+`include "sender.v"
 
 module top
 (

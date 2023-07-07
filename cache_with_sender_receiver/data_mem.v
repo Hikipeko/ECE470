@@ -11,7 +11,7 @@ module data_mem
   input [`MEM_ADDR_SIZE-1:0] memAddr,
   input [`WORD_SIZE_BIT-1:0] wData,
   output reg [`WORD_SIZE_BIT-1:0] rData,
-  output reg [`WORD_SIZE_BIT-1:0] raddr,
+  output reg [`MEM_ADDR_SIZE-1:0] raddr,
   /*output reg done_w,
   output reg done_r,*/
   
