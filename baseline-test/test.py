@@ -2,6 +2,12 @@
 import os
 import random
 import shutil
+import argparse
+
+parser = argparse.ArgumentParser(description='Process command line arguments.')
+parser.add_argument('--write-back', action='store_true', help='Use write-back cache')
+parser.add_argument('--write-through', action='store_true', help='Use write-through cache')
+args = parser.parse_args()
 
 # Generate random cache addresses
 cacheAddr = ['10\'b00' + ''.join(random.choice('01') for _ in range(8)) for _ in range(10)]
@@ -55,13 +61,17 @@ module_content += '''
 endmodule
 '''
 
-# Write the content to the cpu.v file
+shutil.rmtree('./temp')
 if not os.path.exists('temp'):
     os.makedirs('temp')
 
 with open('./temp/cpu.v', 'w') as file:
     file.write(module_content)
 
-files_to_move = ['cache.v', 'data_mem.v', 'testbench.v', 'top.v', 'sys_defs.vh']
+if args.write_through:
+    files_to_move = ['cache_write_through.v', 'data_mem.v', 'testbench.v', 'top.v', 'sys_defs.vh']
+else:
+    files_to_move = ['cache.v', 'data_mem.v', 'testbench.v', 'top.v', 'sys_defs.vh']
+
 for file in files_to_move:
     shutil.copy(f'../baseline/{file}', f'./temp/{file}')
