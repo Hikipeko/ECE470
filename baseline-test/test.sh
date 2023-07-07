@@ -8,4 +8,4 @@ cd $baseline_testdir
 iverilog testbench.v -o testbench && ./testbench > output
 cd $pwd
 cd $writebuf_testdir
-iverilog testbench.v -o testbench && ./testbench > output
+iverilog -Wtimescale testbench.v -o testbench && ./testbench > output
