@@ -19,6 +19,12 @@ module testbench;
   integer j = 0;
   always #half_period begin
     clock = ~clock;
+`ifdef CONCISE
+    for (j = 0; j <= 63; j = j + 1) begin
+      $write("%d", t.u_data_mem.memory[j]);
+    end
+    $write("\n");
+`else
     $display("==========================================================");
     $display("Time: %d ns", i);
     for (j = 0; j <= 63; j = j + 4) begin
@@ -43,6 +49,7 @@ module testbench;
         "tag[3] = %b,| dirty[3] = %b,| block[3][0] = %d block[3][1] = %d block[3][2] = %d block[3][3] = %d",
         t.u_cache.tag[3], t.u_cache.dirty[3], t.u_cache.block[3][0], t.u_cache.block[3][1],
         t.u_cache.block[3][2], t.u_cache.block[3][3]);
+`endif
     i = i + 1;
   end
 
