@@ -22,7 +22,7 @@
 
 module sender(
     input clk,
-    input send,//tells sender to start sending
+    input send,// tells sender to start sending
     input reset,
     input [`WORD_SIZE_BIT-1:0] data_in,
     input [`MEM_ADDR_SIZE-1:0] addr_in,
@@ -60,7 +60,9 @@ module sender(
                 message_in = {addr_in, data_in};
             end
             if (send) begin
+            // send data to receiver
                 if($signed(`WORD_SIZE_BIT+`MEM_ADDR_SIZE-(send_progress+1)*`BANDWIDTH_WRITE_ADDRESS) >= 0) begin
+                // divided by 8
                     send_bus = 1;
                     bus = message_in[(send_progress*`BANDWIDTH_WRITE_ADDRESS) +: `BANDWIDTH_WRITE_ADDRESS];
                     send_progress = send_progress + 1;
@@ -68,6 +70,7 @@ module sender(
                     done = 0;
                 end
                 else if ($signed(`WORD_SIZE_BIT+`MEM_ADDR_SIZE-send_progress*`BANDWIDTH_WRITE_ADDRESS) > 0) begin
+                // cannot divide by 8
                     bus = 0;
                     send_bus = 1;
                     bus[0 +: ((`WORD_SIZE_BIT+`MEM_ADDR_SIZE)  % `BANDWIDTH_WRITE_ADDRESS)] = message_in[send_progress*`BANDWIDTH_WRITE_ADDRESS +: ((`WORD_SIZE_BIT+`MEM_ADDR_SIZE)  % `BANDWIDTH_WRITE_ADDRESS)];

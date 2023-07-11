@@ -56,6 +56,7 @@ module receiver(
             write_counter = 0;
         end
         else if (send) begin
+        // receive data from sender
             if (`WORD_SIZE_BIT + `MEM_ADDR_SIZE-(ptr+1)*`BANDWIDTH_WRITE_ADDRESS >= 0 || ptr == 0) begin
                 receive_reg[(ptr*`BANDWIDTH_WRITE_ADDRESS) +: `BANDWIDTH_WRITE_ADDRESS] = bus;
                 ptr = ptr + 1;
@@ -66,6 +67,7 @@ module receiver(
             end
         end
         else begin
+        // divide receiving data into address and data
             ptr = 0;
             addr_out = receive_reg[`WORD_SIZE_BIT +: `MEM_ADDR_SIZE];
             data_out = receive_reg[0 +: `WORD_SIZE_BIT];
