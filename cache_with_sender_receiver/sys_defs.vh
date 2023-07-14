@@ -20,8 +20,13 @@
 // cache `defines
 // Cache associativity: Direct mapped!!!!!!!!!!!!!!!!
 //Cache replacement policy: Least Recently Used (LRU)
-`define CACHE_BLOCK_SIZE 1 //worda per block
-`define CACHE_SIZE_WORD 8 //total words in cache
+`define WORD_PER_BLOCK 4 //word per block
+`define CACHE_SIZE_WORD 16 //total words in cache
+
+
+`define BLOCK_PER_CACHE (`CACHE_SIZE_WORD/`WORD_PER_BLOCK)
+`define WORD_PER_BLOCK_ADDR_SIZE ($clog2(`WORD_PER_BLOCK))
+`define BLOCK_PER_CACHE_ADDR_SIZE ($clog2(`BLOCK_PER_CACHE))
 
 
 //write data bus bandwidth in bit
