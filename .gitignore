@@ -4,3 +4,7 @@
 /baseline/testbench
 baseline_06231950.zip
 *.out
+/baseline-test/failure
+/baseline-test/failures
+/baseline-test/temp-baseline/
+/baseline-test/temp-writebuf/
