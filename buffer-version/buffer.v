@@ -29,7 +29,7 @@ module buffer(
     input done,//from sender
     input addr_done,//from sender
     input read,//read and write can't be 1 at the same time.
-    output reg full,
+    output full,
     output write_out,
     output buffer_hit, //1 when read = 1 and the address of the desired read is in the buffer
     output reg [`WORD_SIZE_BIT-1:0] write_data,
@@ -48,7 +48,6 @@ module buffer(
             buffer_line_data[i] = 0;
             buffer_line_address[i] = 0;
         end
-        full = 0;
         write_data = 0;
         write_address = 0;
         send_wr_data = 0;
@@ -63,7 +62,6 @@ module buffer(
                 buffer_line_data[i] = 0;
                 buffer_line_address[i] = 0;
             end
-            full = 0;
             write_data = 0;
             write_address = 0;
             send_wr_data = 0;
@@ -73,12 +71,6 @@ module buffer(
             addr_history_done = 0;
         end
         else begin
-            if (count == 4) begin
-                full = 1;
-            end
-            else begin
-                full = 0;
-            end
             if (write) begin
                 if (count < 4) begin
                     buffer_line_data[count] = write_back_data;
@@ -128,6 +120,8 @@ module buffer(
     end
 
     assign write_out = (count > 0);
+    
+    assign full = (count == 4) ? 1 : 0;
 
     assign {buffer_hit,data_read_to_cache} = (read) ? 
                         ((write_back_address == buffer_line_address[0] && count > 0 ) ? {1,buffer_line_data[0]} : 

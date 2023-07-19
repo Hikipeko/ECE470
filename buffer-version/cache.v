@@ -225,12 +225,14 @@ module cache (
         else begin
             read_buffer = 0;
         end
-        if ((counter_read > 0 || counter_send > 0) && full != 1) begin
-            write_buffer = (counter_send > 0);
+        if (counter_read > 0 || (counter_send > 0 && full != 1)) begin
+            write_buffer = (counter_send > 0 && full != 1);
             if (counter_send > 0 ) begin
-                wData = data2mem_reg[4-counter_send];
-                addr = addr2mem_reg[4-counter_send];
-                counter_send = counter_send - 1;
+                if (full != 1) begin
+                    wData = data2mem_reg[4-counter_send];
+                    addr = addr2mem_reg[4-counter_send];
+                    counter_send = counter_send - 1;
+                end
             end
             else begin
                 send_addr = 1;
