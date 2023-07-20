@@ -69,6 +69,7 @@ module sender(
                     write_to_rec = write;
                     done = 0;
                 end
+                
                 else if ($signed(`WORD_SIZE_BIT+`MEM_ADDR_SIZE-send_progress*`BANDWIDTH_WRITE_ADDRESS) > 0) begin
                 // cannot divide by 8
                     bus = 0;

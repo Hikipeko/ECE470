@@ -22,7 +22,7 @@ module data_mem
 );
 
 // content
-reg [`WORD_SIZE_BIT-1:0] memory [`MEM_SIZE_WORD:0];
+reg [`WORD_SIZE_BIT-1:0] memory [`MEM_SIZE_WORD-1:0];
 
 
 

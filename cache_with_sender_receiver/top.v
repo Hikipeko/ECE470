@@ -3,14 +3,14 @@
 `include "data_mem.v"
 `include "receiver.v"
 `include "sender.v"
-
+`include "sys_defs.vh"
 module top
 (
     input wire clock,
     input wire reset
 );
-wire [9:0] CC_addr,CS_addr,SM_addr,MC_raddr,abcd;
-wire [31:0] CC_wData,CC_rData,CS_wData,SM_wData,CM_rData,SM_rData;
+wire [`MEM_ADDR_SIZE-1:0] CC_addr,CS_addr,SM_addr,MC_raddr,abcd;
+wire [`WORD_SIZE_BIT-1:0] CC_wData,CC_rData,CS_wData,SM_wData,CM_rData,SM_rData;
 wire [`BANDWIDTH_WRITE_DATA-1:0] bus,bus_MC;
 wire CC_read,CC_write,hit,CM_read,SM_write,SM_read,CM_write,done_w,done_r,send,done_sender,write_receiver,read_receiver,send_bus,write_rec;
 wire done_sender_MC,send_MC,write_MC,write_rec_MC,send_bus_MC;

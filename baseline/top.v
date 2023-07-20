@@ -7,7 +7,7 @@ module top
     input wire clock,
     input wire reset
 );
-wire [9:0] CC_addr,CM_addr;
+wire [7:0] CC_addr,CM_addr;
 wire [31:0] CC_wData,CC_rData,CM_wData,CM_rData;
 wire CC_read,CC_write,hit,CM_read,CM_write,done_w,done_r;
 
