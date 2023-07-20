@@ -1,4 +1,4 @@
-
+`include "top.v"
 module testbench;
   parameter half_period = 10;
   integer i = 1;
