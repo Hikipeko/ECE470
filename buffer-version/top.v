@@ -11,8 +11,8 @@ module top
     input wire clock,
     input wire reset
 );
-wire [9:0] CC_addr,CS_addr,SM_addr,BM_addr,MC_raddr,abcd,buffer_addr_in,buffer_addr_out;
-wire [31:0] CC_wData,CC_rData,CS_wData,SM_wData,BM_wData,CM_rData,SM_rData,buffer_data_in,buffer_data_out,data_read_from_buffer;
+wire [`MEM_ADDR_SIZE-1:0] CC_addr,CS_addr,SM_addr,BM_addr,MC_raddr,abcd,buffer_addr_in,buffer_addr_out;
+wire [`WORD_SIZE_BIT-1:0] CC_wData,CC_rData,CS_wData,SM_wData,BM_wData,CM_rData,SM_rData,buffer_data_in,buffer_data_out,data_read_from_buffer;
 wire [`BANDWIDTH_WRITE_DATA-1:0] bus_BM,bus_CM_rd,bus_MC;
 wire write_buffer,CC_read,CC_write,hit,read_buffer,SM_write,SM_read,CM_write,BM_write,BM_read,done_w,done_r,send_addr,send_buffer,SC_done_sender_rd,write_receiver,read_receiver,send_bus,write_rec,send_bus_BM,send_wr_addr;
 wire done_sender_MC,send_MC,write_MC,write_rec_MC,send_bus_MC,done_buffer,addr_done,buffer_hit,write_buffer_out,write_rec_buffer;

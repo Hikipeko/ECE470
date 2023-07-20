@@ -6,22 +6,42 @@ import argparse
 import math
 
 # Macro defines
-WORD_SIZE_BIT = 32
-MEM_SIZE_WORD = 64
-MEM_ADDR_SIZE = math.log(MEM_SIZE_WORD,2) + 2
-WORD_PER_BLOCK = 4
-CACHE_SIZE_WORD = 16
-BLOCK_PER_CACHE = CACHE_SIZE_WORD/WORD_PER_BLOCK
-WORD_PER_BLOCK_ADDR_SIZE = math.log(WORD_PER_BLOCK,2)
-BLOCK_PER_CACHE_ADDR_SIZE = math.log(BLOCK_PER_CACHE,2)
+WORD_SIZE_BIT = 32 # 32 bit per word
+MEM_SIZE_WORD = 64 # number of words in memory
+MEM_ADDR_SIZE = int(math.log(MEM_SIZE_WORD,2)) + 2 # data size of a memory address
+WORD_PER_BLOCK = 2 # number of words in a block
+CACHE_SIZE_WORD = 16 # number of words in the cache
+BLOCK_PER_CACHE = int(CACHE_SIZE_WORD/WORD_PER_BLOCK) # number of blocks in the cache
+WORD_PER_BLOCK_ADDR_SIZE = int(math.log(WORD_PER_BLOCK,2)) # data size of a WORD_PER_BLOCK
+BLOCK_PER_CACHE_ADDR_SIZE = int(math.log(BLOCK_PER_CACHE,2)) # data size of a BLOCK_PER_CACHE
 BANDWIDTH_WRITE_DATA = 12
 BANDWIDTH_WRITE_ADDRESS = 12
 BANDWIDTH_READ_DATA = 12
 BANDWIDTH_READ_ADDRESS = 12
 BUS_DELAY = 4
-MEM_DELAY = 100
+MEM_DELAY = "#100"
 MEM_DELAY_REG = 5
 INSTR_NUM = 10
+
+# Generate macro file
+sys_defs = f'''
+`define WORD_SIZE_BIT {WORD_SIZE_BIT}
+`define MEM_SIZE_WORD {MEM_SIZE_WORD}
+`define MEM_ADDR_SIZE {MEM_ADDR_SIZE}
+`define WORD_PER_BLOCK {WORD_PER_BLOCK}
+`define CACHE_SIZE_WORD {CACHE_SIZE_WORD}
+`define BLOCK_PER_CACHE {BLOCK_PER_CACHE}
+`define WORD_PER_BLOCK_ADDR_SIZE {WORD_PER_BLOCK_ADDR_SIZE}
+`define BLOCK_PER_CACHE_ADDR_SIZE {BLOCK_PER_CACHE_ADDR_SIZE}
+`define BANDWIDTH_WRITE_DATA {BANDWIDTH_WRITE_DATA}
+`define BANDWIDTH_WRITE_ADDRESS {BANDWIDTH_WRITE_ADDRESS}
+`define BANDWIDTH_READ_DATA {BANDWIDTH_READ_DATA}
+`define BANDWIDTH_READ_ADDRESS {BANDWIDTH_READ_ADDRESS}
+`define BUS_DELAY {BUS_DELAY}
+`define MEM_DELAY {MEM_DELAY}
+`define MEM_DELAY_REG {MEM_DELAY_REG}
+`define INSTR_NUM {INSTR_NUM}
+'''
 
 # Command line parse
 parser = argparse.ArgumentParser(description='Process command line arguments.')
@@ -124,18 +144,25 @@ make_clean(writebuf_testdir)
 with open(baseline_testdir + '/cpu.v', 'w') as file:
     file.write(module_content)
 
+with open(baseline_testdir + '/sys_defs.vh', 'w') as file:
+    file.write(sys_defs)
+
 with open(writebuf_testdir + '/cpu.v', 'w') as file:
     file.write(module_content)
 
+with open(writebuf_testdir + '/sys_defs.vh', 'w') as file:
+    file.write(sys_defs)
+
 # move other files to baseline_testdir
 if args.write_through:
-    files_to_move = ['cache_write_through.v', 'data_mem.v', 'testbench.v', 'top.v', 'sys_defs.vh']
+    files_to_move = ['cache_write_through.v', 'data_mem.v', 'testbench.v', 'top.v']
 else:
-    files_to_move = ['cache.v', 'data_mem.v', 'testbench.v', 'top.v', 'sys_defs.vh']
+    files_to_move = ['cache.v', 'data_mem.v', 'testbench.v', 'top.v']
 for file in files_to_move:
     shutil.copy(f'../baseline/{file}', f'{baseline_testdir}/{file}')
 
 # move other files to writebuf_testdir
-files_to_move = ['cache.v', 'data_mem.v', 'testbench.v', 'top.v', 'sys_defs.vh', 'sender.v', 'receiver.v']
+# files_to_move = ['cache.v', 'data_mem.v', 'testbench.v', 'top.v', 'sender.v', 'receiver.v', 'buffer.v']
+files_to_move = ['cache.v', 'data_mem.v', 'testbench.v', 'top.v', 'sender.v', 'receiver.v']
 for file in files_to_move:
     shutil.copy(f'../cache_with_sender_receiver/{file}', f'{writebuf_testdir}/{file}')

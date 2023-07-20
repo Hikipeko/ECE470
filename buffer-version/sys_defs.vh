@@ -13,28 +13,33 @@
 
 
 //Memory parameters
-`define MEM_SIZE_WORD 256 //words in memory
-`define MEM_ADDR_SIZE 10 //log2(MEM_SIZE*WORD_SIZE/8) data size of each memory address
+`define MEM_SIZE_WORD 64 //words in memory
+`define MEM_ADDR_SIZE 8 //log2(MEM_SIZE*WORD_SIZE/8) data size of each memory address
 //need to be byte addressable
 
 // cache `defines
 // Cache associativity: Direct mapped!!!!!!!!!!!!!!!!
 //Cache replacement policy: Least Recently Used (LRU)
-`define CACHE_BLOCK_SIZE 1 //worda per block
-`define CACHE_SIZE_WORD 8 //total words in cache
+`define WORD_PER_BLOCK 4 //word per block
+`define CACHE_SIZE_WORD 16 //total words in cache
+
+
+`define BLOCK_PER_CACHE (`CACHE_SIZE_WORD/`WORD_PER_BLOCK)
+`define WORD_PER_BLOCK_ADDR_SIZE ($clog2(`WORD_PER_BLOCK))
+`define BLOCK_PER_CACHE_ADDR_SIZE ($clog2(`BLOCK_PER_CACHE))
 
 
 //write data bus bandwidth in bit
-`define BANDWIDTH_WRITE_DATA 8
+`define BANDWIDTH_WRITE_DATA 12
 
 //write address bus bandwidth in bit
-`define BANDWIDTH_WRITE_ADDRESS 8
+`define BANDWIDTH_WRITE_ADDRESS 12
 
 //read data bus bandwidth in bit
-`define BANDWIDTH_READ_DATA 8
+`define BANDWIDTH_READ_DATA 12
 
 //read address bus bandwidth in bit
-`define BANDWIDTH_READ_ADDRESS 8
+`define BANDWIDTH_READ_ADDRESS 12
 
 
 //bus delay in cycles
@@ -44,5 +49,7 @@
 //delay between request and receive in data mem
 `define MEM_DELAY #100
 `define MEM_DELAY_REG 5
+
+`define INSTR_NUM 10
 `endif
 

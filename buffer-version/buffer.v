@@ -36,12 +36,14 @@ module buffer(
     output reg [`MEM_ADDR_SIZE-1:0] write_address,
     output [`WORD_SIZE_BIT-1:0] data_read_to_cache, //data output corresponding to read input signal
     output reg send_wr_data,
-    output reg send_wr_addr
+    output reg send_wr_addr,
+    output wire finish
 );
     integer i;
     reg [`WORD_SIZE_BIT-1 : 0] buffer_line_data [3:0];
     reg [`MEM_ADDR_SIZE-1 : 0] buffer_line_address [3:0];
     reg [2:0] count,count_addr;
+    assign finish = (count == 0);
     reg addr_history_done;
     initial begin
         for (i = 0; i < 4; i = i + 1) begin
