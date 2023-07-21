@@ -9,7 +9,7 @@ import math
 WORD_SIZE_BIT = 32 # 32 bit per word
 MEM_SIZE_WORD = 64 # number of words in memory
 MEM_ADDR_SIZE = int(math.log(MEM_SIZE_WORD,2)) + 2 # data size of a memory address
-WORD_PER_BLOCK = 2 # number of words in a block
+WORD_PER_BLOCK = 4 # number of words in a block
 CACHE_SIZE_WORD = 16 # number of words in the cache
 BLOCK_PER_CACHE = int(CACHE_SIZE_WORD/WORD_PER_BLOCK) # number of blocks in the cache
 WORD_PER_BLOCK_ADDR_SIZE = int(math.log(WORD_PER_BLOCK,2)) # data size of a WORD_PER_BLOCK
