@@ -1,4 +1,9 @@
 `include"sys_defs.vh"
+
+`define BLOCK_OFFSET (cpuAddr[(2+`WORD_PER_BLOCK_ADDR_SIZE)+:`BLOCK_PER_CACHE_ADDR_SIZE])
+`define WORD_OFFSET (cpuAddr[2+:`WORD_PER_BLOCK_ADDR_SIZE])
+`define TAG_FIELD (cpuAddr[(`MEM_ADDR_SIZE-1):(2+`WORD_PER_BLOCK_ADDR_SIZE+`BLOCK_PER_CACHE_ADDR_SIZE)])
+
 module cache (
     input clock,
     input reset,

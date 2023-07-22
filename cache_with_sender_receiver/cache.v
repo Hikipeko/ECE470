@@ -26,20 +26,20 @@ module cache (
     output reg [`WORD_SIZE_BIT-1:0] wData
 );
 
-  reg valid[`BLOCK_PER_CACHE:0];
-  reg dirty[`BLOCK_PER_CACHE:0];
-  reg [`MEM_ADDR_SIZE-7:0] tag[`BLOCK_PER_CACHE:0];
-  reg [`WORD_SIZE_BIT-1:0] block[`WORD_PER_BLOCK:0][`BLOCK_PER_CACHE:0];
+  reg valid[`BLOCK_PER_CACHE-1:0];
+  reg dirty[`BLOCK_PER_CACHE-1:0];
+  reg [(`MEM_ADDR_SIZE-2-`WORD_PER_BLOCK_ADDR_SIZE-`BLOCK_PER_CACHE_ADDR_SIZE):0] tag[`BLOCK_PER_CACHE-1:0];
+  reg [`WORD_SIZE_BIT-1:0] block[`BLOCK_PER_CACHE-1:0][`WORD_PER_BLOCK-1:0];
 
 
-  reg [`MEM_ADDR_SIZE-1:0] addr2mem_reg[`BLOCK_PER_CACHE:0];
-  reg [`MEM_ADDR_SIZE-1:0] addrrdmem_reg[`BLOCK_PER_CACHE:0];
-  reg [`WORD_SIZE_BIT-1:0] data2mem_reg[`BLOCK_PER_CACHE:0];
+  reg [`MEM_ADDR_SIZE-1:0] addr2mem_reg[`WORD_PER_BLOCK-1:0];
+  reg [`MEM_ADDR_SIZE-1:0] addrrdmem_reg[`WORD_PER_BLOCK-1:0];
+  reg [`WORD_SIZE_BIT-1:0] data2mem_reg[`WORD_PER_BLOCK-1:0];
   reg [4:0] counter_send, counter_read, receiver_counter;
   reg block_transmission_done;
 
-  reg [`WORD_PER_BLOCK_ADDR_SIZE-1:0] i;
-  reg [`BLOCK_PER_CACHE_ADDR_SIZE-1:0] j;
+  reg [`WORD_PER_BLOCK_ADDR_SIZE-1:0] j;
+  reg [`BLOCK_PER_CACHE_ADDR_SIZE-1:0] i;
 
 
   initial begin
@@ -77,20 +77,20 @@ module cache (
         if (dirty[`BLOCK_OFFSET] == 1'b1) begin  //dirty
           if (counter_send == 0) begin
             counter_send = `WORD_PER_BLOCK;
-            i = 0;
+            j = 0;
             repeat (`WORD_PER_BLOCK) begin
-              addr2mem_reg[i] = {tag[`BLOCK_OFFSET], `BLOCK_OFFSET, i, 2'b00};
-              data2mem_reg[i] = block[`BLOCK_OFFSET][i];
-              i = i + 1;
+              addr2mem_reg[j] = {tag[`BLOCK_OFFSET], `BLOCK_OFFSET, j, 2'b00};
+              data2mem_reg[j] = block[`BLOCK_OFFSET][j];
+              j = j + 1;
             end
           end
         end
         if (counter_read == 0) begin
           counter_read = `WORD_PER_BLOCK;
-          i = 0;
+          j = 0;
           repeat (`WORD_PER_BLOCK) begin
-            addrrdmem_reg[i] = {`TAG_FIELD, `BLOCK_OFFSET, i, 2'b00};
-            i = i + 1;
+            addrrdmem_reg[j] = {`TAG_FIELD, `BLOCK_OFFSET, j, 2'b00};
+            j = j + 1;
           end
         end
       end else begin  //hit
@@ -102,20 +102,20 @@ module cache (
         if (dirty[`BLOCK_OFFSET] == 1'b1) begin  //dirty
           if (counter_send == 0) begin
             counter_send = `WORD_PER_BLOCK;
-            i = 0;
+            j = 0;
             repeat (`WORD_PER_BLOCK) begin
-              addr2mem_reg[i] = {tag[`BLOCK_OFFSET], `BLOCK_OFFSET, i, 2'b00};
-              data2mem_reg[i] = block[`BLOCK_OFFSET][i];
-              i = i + 1;
+              addr2mem_reg[j] = {tag[`BLOCK_OFFSET], `BLOCK_OFFSET, j, 2'b00};
+              data2mem_reg[j] = block[`BLOCK_OFFSET][j];
+              j = j + 1;
             end
           end
         end
         if (counter_read == 0) begin
           counter_read = `WORD_PER_BLOCK;
-          i = 0;
+          j = 0;
           repeat (`WORD_PER_BLOCK) begin
-            addrrdmem_reg[i] = {`TAG_FIELD, `BLOCK_OFFSET, i, 2'b00};
-            i = i + 1;
+            addrrdmem_reg[j] = {`TAG_FIELD, `BLOCK_OFFSET, j, 2'b00};
+            j = j + 1;
           end
         end
       end else begin  //hit
