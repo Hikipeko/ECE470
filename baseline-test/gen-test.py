@@ -21,7 +21,7 @@ BANDWIDTH_READ_ADDRESS = 12
 BUS_DELAY = 4
 MEM_DELAY = "#100"
 MEM_DELAY_REG = 5
-INSTR_NUM = 20
+INSTR_NUM = 10
 
 # Generate macro file
 sys_defs = f'''
@@ -163,6 +163,6 @@ for file in files_to_move:
 
 # move other files to writebuf_testdir
 # files_to_move = ['cache.v', 'data_mem.v', 'testbench.v', 'top.v', 'sender.v', 'receiver.v', 'buffer.v']
-files_to_move = ['cache.v', 'data_mem.v', 'testbench.v', 'top.v', 'sender.v', 'receiver.v']
+files_to_move = ['cache.v','cache_write_through.v', 'data_mem.v', 'testbench.v', 'top.v', 'sender.v', 'receiver.v']
 for file in files_to_move:
     shutil.copy(f'../cache_with_sender_receiver/{file}', f'{writebuf_testdir}/{file}')

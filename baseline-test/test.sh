@@ -1,14 +1,14 @@
 #!/usr/bin/env zsh
 
-./gen-test.py --write-back
+./gen-test.py --write-through
 pwd=$(pwd)
-baseline_testdir="./temp-baseline"
+# baseline_testdir="./temp-baseline"
 writebuf_testdir="./temp-writebuf"
-cd $baseline_testdir
-sed -i '1s/^/`define CONCISE\n/' testbench.v
-iverilog testbench.v -o testbench && ./testbench > output
+# cd $baseline_testdir
+# sed -i '1s/^/`define CONCISE\n/' testbench.v
+# iverilog testbench.v -o testbench && ./testbench > output
 # cat output | uniq | sed '$d' | sed '$d' > output-processed
-tail -1 output > mem.out
+# tail -1 output > mem.out
 cd $pwd
 cd $writebuf_testdir
 sed -i '1s/^/`define CONCISE\n/' testbench.v

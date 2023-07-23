@@ -1,4 +1,3 @@
-`timescale 1ns / 1ps
 `include "sys_defs.vh"
 module data_mem
 (

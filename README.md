@@ -10,6 +10,27 @@
 │   ├── sys_defs.vh
 │   ├── testbench.v
 │   └── top.v
+├── cache_with_sender_receiver	cache modified to have sender and receiver for comparison with the buffered version
+│   ├── cache.v
+│   ├── cache_write_through.v
+│   ├── cpu.v
+│   ├── data_mem.v
+│   ├── receiver.v
+│   ├── sender.v
+│   ├── sys_defs.vh
+│   ├── testbench.v
+│   └── top.v
+├── buffered version	cache with write buffer
+│   ├── buffer.v
+│   ├── cache.v
+│   ├── cache_write_through.v
+│   ├── cpu.v
+│   ├── data_mem.v
+│   ├── receiver.v
+│   ├── sender.v
+│   ├── sys_defs.vh
+│   ├── testbench.v
+│   └── top.v
 └── README.md
 ```
 

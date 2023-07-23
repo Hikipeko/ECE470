@@ -1,5 +1,6 @@
 `include "top.v"
 `include "sys_defs.vh"
+`define DIFF
 module testbench;
   parameter half_period = 10;
   integer cycle = 1;
@@ -14,7 +15,7 @@ module testbench;
     $dumpfile("test.vcd");
     $dumpvars(0, testbench);
     #0 clock = 1;
-    #(`INSTR_NUM * 2000)
+    #(`INSTR_NUM * 10000)
       repeat (`BLOCK_PER_CACHE) begin
         if (t.u_cache.dirty[j_loop]) begin
           k_loop = 0;
@@ -34,9 +35,9 @@ module testbench;
     $finish;
   end
 
-  integer i = 0;
-  integer j = 0;
-  integer k = 0;
+  integer i = 0;//iterator for `MEM_SIZE_WORD
+  integer j = 0;//iterator for `WORD_PER_BLOCK
+  integer k = 0;//iterator for `BLOCK_PER_CACHE
   reg [`BLOCK_PER_CACHE_ADDR_SIZE-1:0] j_loop = 0;
   reg [`WORD_PER_BLOCK_ADDR_SIZE-1:0] k_loop = 0;
   reg finishFlag = 0;
@@ -45,23 +46,23 @@ module testbench;
   reg valid[`BLOCK_PER_CACHE-1:0];
   reg dirty[`BLOCK_PER_CACHE-1:0];
   reg [(`MEM_ADDR_SIZE-2-`WORD_PER_BLOCK_ADDR_SIZE-`BLOCK_PER_CACHE_ADDR_SIZE):0] tag[`BLOCK_PER_CACHE-1:0];
-  reg [`WORD_SIZE_BIT-1:0] block[`WORD_PER_BLOCK-1:0][`BLOCK_PER_CACHE-1:0];
+  reg [`WORD_SIZE_BIT-1:0] block[`BLOCK_PER_CACHE-1:0][`WORD_PER_BLOCK-1:0];
   reg [`WORD_SIZE_BIT-1:0] memory[`MEM_SIZE_WORD-1:0];
   reg diffFlag = 0;
 
   initial begin
-    for (j = 0; j < `BLOCK_PER_CACHE; j = j + 1) begin
-      valid[j] = 0;
-      dirty[j] = 0;
+    for (k = 0; k < `BLOCK_PER_CACHE; k = k + 1) begin
+      valid[k] = 0;
+      dirty[k] = 0;
     end
-    for (j = 0; j < `BLOCK_PER_CACHE; j = j + 1) begin
-      tag[j] = 0;
-      for (k = 0; k < `WORD_PER_BLOCK; k = k + 1) begin
+    for (k = 0; k < `BLOCK_PER_CACHE; k = k + 1) begin
+      tag[k] = 0;
+      for (j = 0; j < `WORD_PER_BLOCK; j = j + 1) begin
         block[k][j] = 0;
       end
     end
-    for (j = 0; j < `MEM_SIZE_WORD; j = j + 1) begin
-      memory[j] = j;
+    for (i = 0; i < `MEM_SIZE_WORD; i = i + 1) begin
+      memory[i] = i;
     end
   end
   `endif
