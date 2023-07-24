@@ -1,4 +1,4 @@
-`include "cache_write_through.v"
+`include "cache.v"
 `include "cpu.v"
 `include "data_mem.v"
 `include "receiver.v"

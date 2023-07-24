@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 
-./gen-test.py --write-through
+./gen-test.py --write-back
 pwd=$(pwd)
 # baseline_testdir="./temp-baseline"
 writebuf_testdir="./temp-writebuf"

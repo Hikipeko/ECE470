@@ -9,8 +9,8 @@ import math
 WORD_SIZE_BIT = 32 # 32 bit per word
 MEM_SIZE_WORD = 64 # number of words in memory
 MEM_ADDR_SIZE = int(math.log(MEM_SIZE_WORD,2)) + 2 # data size of a memory address
-WORD_PER_BLOCK = 4 # number of words in a block
-CACHE_SIZE_WORD = 8 # number of words in the cache
+WORD_PER_BLOCK = 8 # number of words in a block
+CACHE_SIZE_WORD = 16 # number of words in the cache
 BLOCK_PER_CACHE = int(CACHE_SIZE_WORD/WORD_PER_BLOCK) # number of blocks in the cache
 WORD_PER_BLOCK_ADDR_SIZE = int(math.log(WORD_PER_BLOCK,2)) # data size of a WORD_PER_BLOCK
 BLOCK_PER_CACHE_ADDR_SIZE = int(math.log(BLOCK_PER_CACHE,2)) # data size of a BLOCK_PER_CACHE
@@ -21,7 +21,7 @@ BANDWIDTH_READ_ADDRESS = 12
 BUS_DELAY = 4
 MEM_DELAY = "#100"
 MEM_DELAY_REG = 5
-INSTR_NUM = 10
+INSTR_NUM = 30
 
 # Generate macro file
 sys_defs = f'''
@@ -162,7 +162,8 @@ for file in files_to_move:
     shutil.copy(f'../baseline/{file}', f'{baseline_testdir}/{file}')
 
 # move other files to writebuf_testdir
-# files_to_move = ['cache.v', 'data_mem.v', 'testbench.v', 'top.v', 'sender.v', 'receiver.v', 'buffer.v']
-files_to_move = ['cache.v','cache_write_through.v', 'data_mem.v', 'testbench.v', 'top.v', 'sender.v', 'receiver.v']
+files_to_move = ['cache.v', 'data_mem.v', 'testbench.v', 'top.v', 'sender.v', 'receiver.v', 'buffer.v']
+# files_to_move = ['cache.v', 'data_mem.v', 'testbench.v', 'top.v', 'sender.v', 'receiver.v']
 for file in files_to_move:
-    shutil.copy(f'../cache_with_sender_receiver/{file}', f'{writebuf_testdir}/{file}')
+    shutil.copy(f'../buffer-version/{file}', f'{writebuf_testdir}/{file}')
+    # shutil.copy(f'../cache_with_sender_receiver/{file}', f'{writebuf_testdir}/{file}')

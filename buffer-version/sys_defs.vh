@@ -20,7 +20,7 @@
 // cache `defines
 // Cache associativity: Direct mapped!!!!!!!!!!!!!!!!
 //Cache replacement policy: Least Recently Used (LRU)
-`define WORD_PER_BLOCK 4 //word per block
+`define WORD_PER_BLOCK 8 //word per block
 `define CACHE_SIZE_WORD 16 //total words in cache
 
 
@@ -50,6 +50,6 @@
 `define MEM_DELAY #100
 `define MEM_DELAY_REG 5
 
-`define INSTR_NUM 10
+`define INSTR_NUM 30
 `endif
 
