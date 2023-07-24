@@ -47,6 +47,7 @@ module cache (
   reg block_transmission_done;
   reg read_miss;
   reg [2:0] miss_reg;
+  reg write_reg;
 
   integer i;
   initial begin
@@ -61,10 +62,6 @@ module cache (
       addr2mem_reg[i] = 0;
       addrrdmem_reg[i] = 0;
       data2mem_reg[i] = 0;
-      counter_send = 0;
-      counter_read = 0;
-      receiver_counter = 0;
-      block_transmission_done = 0;
     end
     hit   = 1'b0;
     read_buffer  = 1'b0;
@@ -78,6 +75,11 @@ module cache (
     read_miss = 0;
     send_addr = 0;
     addr_sendData = 0;
+    counter_send = 0;
+    counter_read = 0;
+    receiver_counter = 0;
+    block_transmission_done = 0;
+    write_reg = 0;
   end
 
     always @(reset or cpuRead or cpuWrite or cpuAddr or cpuData or block_transmission_done or miss_reg) begin
@@ -162,7 +164,7 @@ module cache (
                         counter_send = 1;
                         data2mem_reg[4-counter_send] = cpuData;
                         addr2mem_reg[4-counter_send] = cpuAddr;
-                        hit = 1'b1;
+                        write_reg = 1;
                     end
                 end
             end
@@ -198,7 +200,7 @@ module cache (
         if (write_receiver) begin
             block[cpuAddr[5:4]][receiver_counter] = memData;
             if (receiver_counter == 3) begin
-                block_transmission_done = 1;
+                block_transmission_done = !block_transmission_done;
                 receiver_counter = 0;
                 tag[cpuAddr[5:4]] = cpuAddr[`MEM_ADDR_SIZE-1:6];
                 valid[cpuAddr[5:4]] = 1'b1;
@@ -209,7 +211,7 @@ module cache (
             end
         end
         else begin
-            block_transmission_done = 0;
+            block_transmission_done = block_transmission_done;
         end
     end
  
@@ -237,6 +239,13 @@ module cache (
                     wData = data2mem_reg[4-counter_send];
                     addr = addr2mem_reg[4-counter_send];
                     counter_send = counter_send - 1;
+                    if (write_reg == 1 && counter_send == 0) begin
+                        hit = 1'b1;
+                        write_reg = 0;
+                    end
+                    else begin
+                        write_reg = write_reg;
+                    end
                 end
             end
             else begin
