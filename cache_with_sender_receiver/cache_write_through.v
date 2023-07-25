@@ -42,7 +42,8 @@ module cache (
   reg [`WORD_PER_BLOCK_ADDR_SIZE-1:0] j;
   reg [`BLOCK_PER_CACHE_ADDR_SIZE-1:0] i;
 
-
+  reg [`MEM_ADDR_SIZE-1:0] temp;
+  reg [`WORD_SIZE_BIT-1:0] temp_data;
   initial begin
     i = 0;
     repeat (`BLOCK_PER_CACHE) begin
@@ -69,6 +70,7 @@ module cache (
     addr = 'bz;
     rData = 'bz;
     wData = 'bz;
+    temp= 'bz;
   end
 
   always @(reset or cpuRead or cpuWrite or cpuAddr or cpuData or block_transmission_done) begin
@@ -92,6 +94,7 @@ module cache (
         hit   = 1'b1;
       end
     end else if (cpuWrite == 1'b1) begin  //write case
+      //temp_data=cpuData;
       if (valid[`BLOCK_OFFSET] == 1'b0 | tag[`BLOCK_OFFSET] != `TAG_FIELD) begin  // miss
         if (counter_read == 0) begin
           counter_read = `WORD_PER_BLOCK;
@@ -101,28 +104,27 @@ module cache (
             j = j + 1;
           end
         end
-        valid[`BLOCK_OFFSET] = 1'b1;
+        //valid[`BLOCK_OFFSET] = 1'b1;
         //dirty[`BLOCK_OFFSET] = 1'b1;
-        tag[`BLOCK_OFFSET]   = `TAG_FIELD;
+        //tag[`BLOCK_OFFSET]   = `TAG_FIELD;
       end else begin  //hit (also why else?
+        //temp_data= cpuData;
+        //temp=cpuAddr;
+      
         valid[`BLOCK_OFFSET] = 1'b1;
         //dirty[`BLOCK_OFFSET] = 1'b1;
         tag[`BLOCK_OFFSET] = `TAG_FIELD;
 
         block[`BLOCK_OFFSET][`WORD_OFFSET] = cpuData;
-
-
+     
         if (counter_send == 0) begin
-          counter_send = `WORD_PER_BLOCK;
-          j = 0;
-          repeat (`WORD_PER_BLOCK) begin
-            addr2mem_reg[j] = {tag[`BLOCK_OFFSET], `BLOCK_OFFSET, j, 2'b00};
-            data2mem_reg[j] = block[`BLOCK_OFFSET][j];
-            j = j + 1;
-          end
-
+          counter_send = 1;
+          temp_data= cpuData;
+          temp=cpuAddr;
         end
-        hit = 1'b1;
+        
+
+        //hit = 1'b1;
       end
     end
   end
@@ -147,12 +149,12 @@ module cache (
 
 
 
-
   always @(negedge clock) begin
     if (done_sender) begin
       send = 0;
       if (counter_send > 0) begin
         counter_send = counter_send - 1;
+        hit=1'b1;
       end else if (counter_read > 0) begin
         counter_read = counter_read - 1;
       end
@@ -161,8 +163,8 @@ module cache (
         send  = 1;
         write = (counter_send > 0);
         if (counter_send > 0) begin
-          wData = data2mem_reg[`WORD_PER_BLOCK-counter_send];
-          addr  = addr2mem_reg[`WORD_PER_BLOCK-counter_send];
+          wData = temp_data;//data2mem_reg[`WORD_PER_BLOCK-counter_send];
+          addr  = temp;//addr2mem_reg[`WORD_PER_BLOCK-counter_send];
         end else begin
           wData = 0;
           addr  = addrrdmem_reg[`WORD_PER_BLOCK-counter_read];
