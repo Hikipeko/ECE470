@@ -8,20 +8,24 @@ import math
 # Macro defines
 WORD_SIZE_BIT = 32 # 32 bit per word
 MEM_SIZE_WORD = 64 # number of words in memory
-MEM_ADDR_SIZE = int(math.log(MEM_SIZE_WORD,2)) + 2 # data size of a memory address
 WORD_PER_BLOCK = 8 # number of words in a block
-CACHE_SIZE_WORD = 16 # number of words in the cache
+CACHE_SIZE_WORD = 32 # number of words in the cache
+BUS_WIDTH = 12 # all kind of bus width
+MEM_DELAY_REG = 5 # cycle it takes for memory to respond
+INSTR_NUM = 64 # number of instructions
+
+BANDWIDTH_WRITE_DATA = BUS_WIDTH
+BANDWIDTH_WRITE_ADDRESS = BUS_WIDTH
+BANDWIDTH_READ_DATA = BUS_WIDTH
+BANDWIDTH_READ_ADDRESS = BUS_WIDTH
+MEM_ADDR_SIZE = int(math.log(MEM_SIZE_WORD,2)) + 2 # data size of a memory address
 BLOCK_PER_CACHE = int(CACHE_SIZE_WORD/WORD_PER_BLOCK) # number of blocks in the cache
 WORD_PER_BLOCK_ADDR_SIZE = int(math.log(WORD_PER_BLOCK,2)) # data size of a WORD_PER_BLOCK
 BLOCK_PER_CACHE_ADDR_SIZE = int(math.log(BLOCK_PER_CACHE,2)) # data size of a BLOCK_PER_CACHE
-BANDWIDTH_WRITE_DATA = 12
-BANDWIDTH_WRITE_ADDRESS = 12
-BANDWIDTH_READ_DATA = 12
-BANDWIDTH_READ_ADDRESS = 12
-BUS_DELAY = 4
-MEM_DELAY = "#100"
-MEM_DELAY_REG = 5
-INSTR_NUM = 30
+
+BANDWIDTH_MULTIPLE = ((WORD_SIZE_BIT+MEM_ADDR_SIZE) % BANDWIDTH_WRITE_ADDRESS == 0) # needed to resolve a bit length error in sender
+# BUS_DELAY = 4
+# MEM_DELAY = "#100"
 
 # Generate macro file
 sys_defs = f'''
@@ -37,11 +41,13 @@ sys_defs = f'''
 `define BANDWIDTH_WRITE_ADDRESS {BANDWIDTH_WRITE_ADDRESS}
 `define BANDWIDTH_READ_DATA {BANDWIDTH_READ_DATA}
 `define BANDWIDTH_READ_ADDRESS {BANDWIDTH_READ_ADDRESS}
-`define BUS_DELAY {BUS_DELAY}
-`define MEM_DELAY {MEM_DELAY}
+
 `define MEM_DELAY_REG {MEM_DELAY_REG}
 `define INSTR_NUM {INSTR_NUM}
 '''
+if (BANDWIDTH_MULTIPLE == 1):
+    sys_defs += f'''`define BANDWIDTH_MULTIPLE'''
+
 
 # Command line parse
 parser = argparse.ArgumentParser(description='Process command line arguments.')
@@ -71,7 +77,7 @@ module cpu (
     output wire finish
 );
 
-  reg [4:0] count;
+  reg [9:0] count;
   reg rEnable[`INSTR_NUM-1:0];
   reg wEnable[`INSTR_NUM-1:0];
   reg [`MEM_ADDR_SIZE-1:0] cacheAddr[`INSTR_NUM-1:0];
@@ -90,16 +96,16 @@ for i in range(0, INSTR_NUM):
     memData = random.randint(0, 999)
     # Create specific cache lines
     specific_cache_lines = f'''
-    rEnable[{i}] = 1'b{int(i%2 == 0)};
-    wEnable[{i}] = 1'b{int(i%2 == 1)};
+    rEnable[{i}] = 1'b{int(i % 8 != 0)};
+    wEnable[{i}] = 1'b{int(i % 8 == 0)};
     cacheAddr[{i}] = {cacheAddrBin[i]};
     memData[{i}] = 'd{memData};'''
     module_content += specific_cache_lines
-    if (i % 2 == 1):
+    if (i % 8 == 0):
         memory[int(cacheAddr[i]/4)] = memData
-    elif (i % 2 == 0):
-        readData.append(memory[i])
-        readAddr.append(cacheAddr[i])
+    # elif (i % 4 != 0):
+    #     readData.append(memory[i])
+    #     readAddr.append(cacheAddr[i])
 # open file in write mode
 with open('mem.out', 'w') as file:
     for item in memory:
@@ -155,11 +161,11 @@ with open(writebuf_testdir + '/sys_defs.vh', 'w') as file:
 
 # move other files to baseline_testdir
 if args.write_through:
-    files_to_move = ['cache_write_through.v', 'data_mem.v', 'testbench.v', 'top.v']
+    files_to_move = ['cache_write_through.v', 'data_mem.v', 'testbench.v', 'top.v','sender.v','receiver.v']
 else:
-    files_to_move = ['cache.v', 'data_mem.v', 'testbench.v', 'top.v']
+    files_to_move = ['cache.v', 'data_mem.v', 'testbench.v', 'top.v','sender.v','receiver.v']
 for file in files_to_move:
-    shutil.copy(f'../baseline/{file}', f'{baseline_testdir}/{file}')
+    shutil.copy(f'../cache_with_sender_receiver/{file}', f'{baseline_testdir}/{file}')
 
 # move other files to writebuf_testdir
 files_to_move = ['cache.v', 'data_mem.v', 'testbench.v', 'top.v', 'sender.v', 'receiver.v', 'buffer.v']

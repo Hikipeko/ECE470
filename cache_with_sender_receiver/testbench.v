@@ -132,7 +132,8 @@ module testbench;
       
       cycle = cycle + 1;
       if (t.u_cpu.finish == 1) begin
-        $write("\FINISH at cycle %4d with memory:\n", cycle);
+        $write("FINISH with memory at cycle:\n");
+        $write("%4d\n", cycle);
         finishFlag = 1;
       end
     end

@@ -124,10 +124,10 @@ module buffer(
     assign full = (count == 4) ? 1 : 0;
 
     assign {buffer_hit,data_read_to_cache} = (read) ? 
-                        ((write_back_address == buffer_line_address[0] && count > 0 ) ? {1,buffer_line_data[0]} : 
-                            (write_back_address == buffer_line_address[1] && count > 1) ? {1,buffer_line_data[1]} : 
-                                (write_back_address == buffer_line_address[2] && count > 2) ? {1,buffer_line_data[2]} :
-                                    (write_back_address == buffer_line_address[3] && count > 3) ? {1,buffer_line_data[3]} : {0,0}):
-                                        {0,0};
+                        ((write_back_address == buffer_line_address[0] && count > 0 ) ? {1'b1,buffer_line_data[0]} : 
+                            (write_back_address == buffer_line_address[1] && count > 1) ? {1'b1,buffer_line_data[1]} : 
+                                (write_back_address == buffer_line_address[2] && count > 2) ? {1'b1,buffer_line_data[2]} :
+                                    (write_back_address == buffer_line_address[3] && count > 3) ? {1'b1,buffer_line_data[3]} : {1'b0,`WORD_SIZE_BIT'b0}):
+                                        {1'b0,`WORD_SIZE_BIT'b0};
 
 endmodule
