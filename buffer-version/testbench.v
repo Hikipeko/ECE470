@@ -1,5 +1,6 @@
-`include "top.v"
+//`include "top.v"
 `include "sys_defs.vh"
+`define DIFF
 module testbench;
   parameter half_period = 10;
   integer cycle = 1;
@@ -45,7 +46,7 @@ module testbench;
   reg valid[`BLOCK_PER_CACHE-1:0];
   reg dirty[`BLOCK_PER_CACHE-1:0];
   reg [`MEM_ADDR_SIZE-7:0] tag[`BLOCK_PER_CACHE-1:0];
-  reg [`WORD_SIZE_BIT-1:0] block[`WORD_PER_BLOCK-1:0][`BLOCK_PER_CACHE-1:0];
+  reg [`WORD_SIZE_BIT-1:0] block[`BLOCK_PER_CACHE-1:0][`WORD_PER_BLOCK-1:0];
   reg [`WORD_SIZE_BIT-1:0] memory[`MEM_SIZE_WORD-1:0];
   reg diffFlag = 0;
 
