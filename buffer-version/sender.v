@@ -1,23 +1,3 @@
-`timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 19.06.2023 16:43:30
-// Design Name: 
-// Module Name: sender
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
 `include"sys_defs.vh"
 
 module sender(
@@ -67,6 +47,7 @@ module sender(
                     write_to_rec = write;
                     done = 0;
                 end
+                `ifndef BANDWIDTH_MULTIPLE 
                 else if ($signed(`WORD_SIZE_BIT+`MEM_ADDR_SIZE-send_progress*`BANDWIDTH_WRITE_ADDRESS) > 0) begin
                     bus = 0;
                     send_bus = 1;
@@ -75,6 +56,7 @@ module sender(
                     write_to_rec = write;
                     done = 0;
                 end
+                `endif
                 else begin
                     done = 1;
                     send_bus = 0;

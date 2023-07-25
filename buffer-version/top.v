@@ -1,10 +1,10 @@
 `include"sys_defs.vh"
-/*`include"buffer.v"
+`include"buffer.v"
 `include"sender.v"
 `include"receiver.v"
 `include"cache.v"
 `include"cpu.v"
-`include"data_mem.v"*/
+`include"data_mem.v"
 
 module top
 (
