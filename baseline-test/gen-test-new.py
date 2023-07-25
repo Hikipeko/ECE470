@@ -5,6 +5,9 @@ import shutil
 import argparse
 import math
 
+LOAD_PROPORTION = .306
+STORE_PROPORTION = .086
+
 # Macro defines
 WORD_SIZE_BIT = 32 # 32 bit per word
 MEM_SIZE_WORD = 64 # number of words in memory
@@ -94,14 +97,15 @@ readAddr = []
 for i in range(0, INSTR_NUM):
     # Generate random memData
     memData = random.randint(0, 999)
+    random_float = random.random()
     # Create specific cache lines
     specific_cache_lines = f'''
-    rEnable[{i}] = 1'b{int(i % 3 == 0)};
-    wEnable[{i}] = 1'b{int(i % 3 == 1)};
+    rEnable[{i}] = 1'b{1 if random_float < LOAD_PROPORTION else 0};
+    wEnable[{i}] = 1'b{1 if random_float > 1 - STORE_PROPORTION else 0};
     cacheAddr[{i}] = {cacheAddrBin[i]};
     memData[{i}] = 'd{memData};'''
     module_content += specific_cache_lines
-    if (i % 3 == 1):
+    if random_float > 1 - STORE_PROPORTION:
         memory[int(cacheAddr[i]/4)] = memData
     # elif (i % 4 != 0):
     #     readData.append(memory[i])
@@ -124,7 +128,7 @@ module_content += '''
   end
 
   always @(posedge clock) begin
-    if (hit|(read==0 & write==0)) count = count + 1;
+    if (hit || (read == 0 && write == 0)) count = count + 1;
     else count = count;
   end
   assign read = rEnable[count];

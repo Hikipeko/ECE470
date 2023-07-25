@@ -1,6 +1,6 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 
-./gen-test.py --write-back
+./gen-test-new.py --write-back
 pwd=$(pwd)
 baseline_testdir="./temp-baseline"
 writebuf_testdir="./temp-writebuf"
@@ -11,15 +11,15 @@ iverilog testbench.v -o testbench && ./testbench > output
 tail -1 output > mem.out
 tail -2 output > temp.out
 head -1 temp.out >> ../baseline_cycle.out
-cd $pwd
-cd $writebuf_testdir
+cd "$pwd"
+cd "$writebuf_testdir"
 sed -i '1s/^/`define CONCISE\n/' testbench.v
 iverilog testbench.v -o testbench && ./testbench > output
 # cat output | uniq | sed '$d' | sed '$d' > output-processed
 tail -1 output > mem.out
 tail -2 output > temp.out
 head -1 temp.out >> ../buffer_cycle.out
-cd $pwd
+cd "$pwd"
 # echo "begin diff....."
 # echo "======================================"
 # baseline_file="$baseline_testdir/output-processed"

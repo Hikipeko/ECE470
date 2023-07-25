@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 
 runs=$1
 rm baseline_cycle.out
@@ -16,3 +16,9 @@ for (( i=0; i<runs; i++ )); do
       break
   fi
 done
+
+# calculate average
+baseline_cycle=$(awk '{ total += $1; count++ } END { print total/count }' baseline_cycle.out)
+buffer_cycle=$(awk '{ total += $1; count++ } END { print total/count }' buffer_cycle.out)
+echo "baseline_cycle: $baseline_cycle"
+echo "buffer_cycle: $buffer_cycle"
