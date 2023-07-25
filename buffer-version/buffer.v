@@ -1,23 +1,3 @@
-`timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 19.06.2023 13:30:12
-// Design Name: 
-// Module Name: buffer
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
 `include"sys_defs.vh"
 
 module buffer(
@@ -40,13 +20,13 @@ module buffer(
     output wire finish
 );
     integer i;
-    reg [`WORD_SIZE_BIT-1 : 0] buffer_line_data [3:0];
-    reg [`MEM_ADDR_SIZE-1 : 0] buffer_line_address [3:0];
+    reg [`WORD_SIZE_BIT-1 : 0] buffer_line_data [`WORD_PER_BLOCK-1:0];
+    reg [`MEM_ADDR_SIZE-1 : 0] buffer_line_address [`WORD_PER_BLOCK-1:0];
     reg [2:0] count,count_addr;
     assign finish = (count == 0);
     reg addr_history_done;
     initial begin
-        for (i = 0; i < 4; i = i + 1) begin
+        for (i = 0; i < `WORD_PER_BLOCK; i = i + 1) begin
             buffer_line_data[i] = 0;
             buffer_line_address[i] = 0;
         end
@@ -60,7 +40,7 @@ module buffer(
     end
     always @(posedge clk) begin
         if (reset) begin
-            for (i = 0; i < 4; i = i + 1)begin
+            for (i = 0; i < `WORD_PER_BLOCK; i = i + 1)begin
                 buffer_line_data[i] = 0;
                 buffer_line_address[i] = 0;
             end
@@ -74,7 +54,7 @@ module buffer(
         end
         else begin
             if (write) begin
-                if (count < 4) begin
+                if (count < `WORD_PER_BLOCK) begin
                     buffer_line_data[count] = write_back_data;
                     count = count + 1;
                     buffer_line_address[count_addr] = write_back_address;
@@ -95,16 +75,16 @@ module buffer(
             if (done) begin
                 send_wr_data = 0;
                 write_data = 0;
-                for (i = 0; i < 3; i = i + 1) begin
+                for (i = 0; i < `WORD_PER_BLOCK-1; i = i + 1) begin
                     buffer_line_data[i] =  buffer_line_data[i+1];
                 end
-                buffer_line_data[3] = 0;
+                buffer_line_data[`WORD_PER_BLOCK-1] = 0;
                 count = count - 1;
                 addr_history_done = 0;
-                for (i = 0; i < 3; i = i + 1) begin
+                for (i = 0; i < `WORD_PER_BLOCK-1; i = i + 1) begin
                     buffer_line_address[i] = buffer_line_address[i+1];
                 end
-                buffer_line_address[3] = 0;
+                buffer_line_address[`WORD_PER_BLOCK-1] = 0;
                 count_addr = count_addr - 1;
             end
             if (addr_done) begin
@@ -123,13 +103,17 @@ module buffer(
 
     assign write_out = (count > 0);
     
-    assign full = (count == 4) ? 1 : 0;
+    assign full = (count == `WORD_PER_BLOCK) ? 1 : 0;
 
     assign {buffer_hit,data_read_to_cache} = (read) ? 
                         ((write_back_address == buffer_line_address[0] && count > 0 ) ? {1'b1,buffer_line_data[0]} : 
                             (write_back_address == buffer_line_address[1] && count > 1) ? {1'b1,buffer_line_data[1]} : 
                                 (write_back_address == buffer_line_address[2] && count > 2) ? {1'b1,buffer_line_data[2]} :
-                                    (write_back_address == buffer_line_address[3] && count > 3) ? {1'b1,buffer_line_data[3]} : {1'b0,`WORD_SIZE_BIT'b0}):
+                                    (write_back_address == buffer_line_address[3] && count > 3) ? {1'b1,buffer_line_data[3]} :
+                                    (write_back_address == buffer_line_address[4] && count > 4) ? {1'b1,buffer_line_data[4]} : 
+                                    (write_back_address == buffer_line_address[5] && count > 5) ? {1'b1,buffer_line_data[5]} : 
+                                    (write_back_address == buffer_line_address[6] && count > 6) ? {1'b1,buffer_line_data[6]} :
+                                    (write_back_address == buffer_line_address[7] && count > 7) ? {1'b1,buffer_line_data[7]} :   {1'b0,`WORD_SIZE_BIT'b0}):
                                         {1'b0,`WORD_SIZE_BIT'b0};
 
 endmodule
