@@ -5,14 +5,16 @@ import shutil
 import argparse
 import math
 
-LOAD_PROPORTION = .306
-STORE_PROPORTION = .086
+LOAD_PROPORTION = .451
+STORE_PROPORTION = .1
 
 # Macro defines
 WORD_SIZE_BIT = 32 # 32 bit per word
 MEM_SIZE_WORD = 64 # number of words in memory
+
 WORD_PER_BLOCK = 8 # number of words in a block
 CACHE_SIZE_WORD = 32 # number of words in the cache
+
 BUS_WIDTH = 12 # all kind of bus width
 MEM_DELAY_REG = 5 # cycle it takes for memory to respond
 INSTR_NUM = 64 # number of instructions

@@ -143,7 +143,7 @@ module cpu (
   end
 
   always @(posedge clock) begin
-    if (hit) begin
+    if (hit || (read == 0 && write == 0)) begin
         count = count + 1;
     end
     else begin
