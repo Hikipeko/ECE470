@@ -103,3 +103,9 @@ block[1][2] = 627 | block[1][3] = 7 |
 FINISH at cycle  622 with memory:
    0    1    2    3    4    5  627   ...   61   62   63 
 ```
+
+## plot
+``` sh
+cd plot
+julia -L data.jl -e 'plot_all()'
+```

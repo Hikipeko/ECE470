@@ -1,8 +1,5 @@
-using Plots, Measures
-using Colors
-using LaTeXStrings
-using Printf
-import Plots: bar, plot, savefig, title!
+import Plots, Printf, Colors, Measures
+using Plots: bar, plot, savefig, title!, grid
 
 # data
 pairs = [(8,32)	(8,16)	(4,16) (2,16) (4,8) (2,8)]
