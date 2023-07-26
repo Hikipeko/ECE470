@@ -7,6 +7,9 @@ import Plots: bar, plot, savefig, title!
 # data
 pairs = [(8,32)	(8,16)	(4,16) (2,16) (4,8) (2,8)]
 benchmarks = ["mcf", "lbm", "soplex", "milc", "oment", "bwaves", "gcc", "libquant", "sphinx", "gems"]
+benchmark_load_percentages = [30.60 26.30 38.90 37.30 34.20 46.50 25.60 14.40 30.40 45.10] ./ 100
+benchmark_store_percentages = [8.60 8.50 7.50 10.70 17.90 8.50 13.10 5.00 3.00 10.00] ./ 100
+
 wb_base = [2169.4	2951.8	1656.2	1580.4	1920.2	1245;
            1886.6	2542.4	1450.2	961.4	1642	1025.2;
            2211.0	3097.1	1848.4	1240.7	2106.6	1312.9;
@@ -31,16 +34,62 @@ wb_buffer = [1706.0	1932.4	1281.8	1261.0	1415.8	935.8;
 
 speedup = (wb_base .- wb_buffer) ./ wb_base
 
-# very hacky way to include master title: https://stackoverflow.com/questions/43066957/adding-global-title-to-plots-jl-subplots
-# create a transparent scatter plot with an 'annotation' that will become title
-y = ones(3) 
-title = Plots.scatter(y, marker=0,markeralpha=0, annotations=(2, y[2], Plots.text("Speedup introduced by write buffer for various pairs of (WORD_PER_BLOCK, CACHE_SIZE_WORD)")),axis=false, grid=false, leg=false,size=(200,100))
+function plot_bar_charts()
+    # bar charts
+    # very hacky way to include master title: https://stackoverflow.com/questions/43066957/adding-global-title-to-plots-jl-subplots
+    # create a transparent scatter plot with an 'annotation' that will become title
+    x = Matrix{String}(undef, 10, 6)
+    for i in 1:10
+        for j in 1:6
+            x[i,j] = benchmarks[i]
+        end
+    end
+    y = ones(3) 
+    title = Plots.scatter(y, marker=0,markeralpha=0, annotations=(2, y[2], Plots.text("Speedup introduced by write buffer for various pairs of (WORD_PER_BLOCK, CACHE_SIZE_WORD)")),axis=false, grid=false, leg=false,size=(200,100))
 
-# combine the 'title' plot with your real plots
-Plots.plot(
-    title,
-    plot(x, speedup,layout=grid(3,2), legend=false, seriestype=:bar, title=map(string, pairs), size=(1200, 1200)),
-    layout=grid(2,1,heights=[0.1,0.9])
-)
+    # combine the 'title' plot with your real plots
+    Plots.plot(
+        title,
+        plot(x, speedup,layout=grid(3,2), legend=false, seriestype=:bar, title=map(string, pairs), size=(1200, 1200)),
+        layout=grid(2,1,heights=[0.1,0.9])
+    )
+    savefig("bar.png")
+end
 
-savefig("myplot.png")
+function plot_compare_store()
+    x = Matrix{Float64}(undef, 10, 6)
+    for i in 1:10
+        for j in 1:6
+            x[i,j] = benchmark_store_percentages[i]
+        end
+    end
+    y = ones(3) 
+    title = Plots.scatter(y, marker=0,markeralpha=0, annotations=(2, y[2], Plots.text("Speedup introduced by write buffer for various pairs of (WORD_PER_BLOCK, CACHE_SIZE_WORD)")),axis=false, grid=false, leg=false,size=(200,100))
+
+    # combine the 'title' plot with your real plots
+    Plots.plot(
+        title,
+        plot(x, speedup,layout=grid(3,2), legend=false, seriestype=:scatter, title=map(string, pairs), size=(1200, 1200)),
+        layout=grid(2,1,heights=[0.1,0.9])
+    )
+    savefig("compare-store.png")
+end
+
+function plot_compare_load()
+    x = Matrix{Float64}(undef, 10, 6)
+    for i in 1:10
+        for j in 1:6
+            x[i,j] = benchmark_load_percentages[i]
+        end
+    end
+    y = ones(3) 
+    title = Plots.scatter(y, marker=0,markeralpha=0, annotations=(2, y[2], Plots.text("Speedup introduced by write buffer for various pairs of (WORD_PER_BLOCK, CACHE_SIZE_WORD)")),axis=false, grid=false, leg=false,size=(200,100))
+
+    # combine the 'title' plot with your real plots
+    Plots.plot(
+        title,
+        plot(x, speedup,layout=grid(3,2), legend=false, seriestype=:scatter, title=map(string, pairs), size=(1200, 1200)),
+        layout=grid(2,1,heights=[0.1,0.9])
+    )
+    savefig("compare-load.png")
+end
