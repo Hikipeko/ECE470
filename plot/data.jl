@@ -32,7 +32,8 @@ wb_buffer = [1706.0	1932.4	1281.8	1261.0	1415.8	935.8;
              1602	1911.3	1215.4	933.9	1475.5	969.3;
              2171.5	2861.2	1776.8	1219	1877.9	1371.8]
 
-speedup = (wb_base .- wb_buffer) ./ wb_base
+# speedup = (wb_base .- wb_buffer) ./ wb_base
+speedup = wb_base ./ wb_buffer
 
 function plot_bar_charts()
     # bar charts
@@ -92,4 +93,10 @@ function plot_compare_load()
         layout=grid(2,1,heights=[0.1,0.9])
     )
     savefig("compare-load.png")
+end
+
+function plot_all()
+    plot_bar_charts()
+    plot_compare_load()
+    plot_compare_store()
 end
