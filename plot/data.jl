@@ -48,9 +48,11 @@ function plot_bar_charts()
     # combine the 'title' plot with your real plots
     Plots.plot(
         title,
-        plot(x, speedup,layout=grid(3,2), legend=false, seriestype=:bar, title=map(string, pairs), size=(1200, 1200)),
+        plot(x, speedup,layout=grid(3,2), legend=false, seriestype=:bar, title=map(string, pairs), size=(1200, 1200), xlabel="benchmark", ylabel="speedup"),
         layout=grid(2,1,heights=[0.1,0.9])
     )
+    # xlabel!("x")
+    # ylabel!("y")
     savefig("bar.png")
 end
 
@@ -67,7 +69,7 @@ function plot_compare_store()
     # combine the 'title' plot with your real plots
     Plots.plot(
         title,
-        plot(x, speedup,layout=grid(3,2), legend=false, seriestype=:scatter, title=map(string, pairs), size=(1200, 1200)),
+        plot(x, speedup,layout=grid(3,2), legend=false, seriestype=:scatter, title=map(string, pairs), size=(1200, 1200), xlabel="store instruction percentage", ylabel="speedup"),
         layout=grid(2,1,heights=[0.1,0.9])
     )
     savefig("compare-store.png")
@@ -86,7 +88,7 @@ function plot_compare_load()
     # combine the 'title' plot with your real plots
     Plots.plot(
         title,
-        plot(x, speedup,layout=grid(3,2), legend=false, seriestype=:scatter, title=map(string, pairs), size=(1200, 1200)),
+        plot(x, speedup,layout=grid(3,2), legend=false, seriestype=:scatter, title=map(string, pairs), size=(1200, 1200), xlabel="load instruction percentage", ylabel="speedup"),
         layout=grid(2,1,heights=[0.1,0.9])
     )
     savefig("compare-load.png")
