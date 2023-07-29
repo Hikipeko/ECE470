@@ -5,16 +5,26 @@ import shutil
 import argparse
 import math
 
-LOAD_PROPORTION = .451
-STORE_PROPORTION = .1
+
+# Command line parse
+parser = argparse.ArgumentParser(description='Process command line arguments.')
+parser.add_argument('--write-back', action='store_true', help='Use write-back cache')
+parser.add_argument('--write-through', action='store_true', help='Use write-through cache')
+
+
+parser.add_argument('--block_size', type=int, default=8, help='block_size')
+parser.add_argument('--cache_size', type=int, default=32, help='cache_size')
+parser.add_argument('--load-proportion', type=float, default=0.3, help='LOAD_PROPORTION')
+parser.add_argument('--store-proportion', type=float, default=0.15, help='STORE_PROPORTION')
+
+args = parser.parse_args()
+
 
 # Macro defines
 WORD_SIZE_BIT = 32 # 32 bit per word
 MEM_SIZE_WORD = 64 # number of words in memory
-
-WORD_PER_BLOCK = 8 # number of words in a block
-CACHE_SIZE_WORD = 32 # number of words in the cache
-
+WORD_PER_BLOCK = args.block_size # number of words in a block
+CACHE_SIZE_WORD = args.cache_size # number of words in the cache
 BUS_WIDTH = 12 # all kind of bus width
 MEM_DELAY_REG = 5 # cycle it takes for memory to respond
 INSTR_NUM = 64 # number of instructions
@@ -53,13 +63,6 @@ sys_defs = f'''
 if (BANDWIDTH_MULTIPLE == 1):
     sys_defs += f'''`define BANDWIDTH_MULTIPLE'''
 
-
-# Command line parse
-parser = argparse.ArgumentParser(description='Process command line arguments.')
-parser.add_argument('--write-back', action='store_true', help='Use write-back cache')
-parser.add_argument('--write-through', action='store_true', help='Use write-through cache')
-args = parser.parse_args()
-
 cacheAddr = []
 cacheAddrBin = []
 
@@ -91,6 +94,14 @@ module cpu (
   initial begin
 '''
 
+# Generate list for load & store instructions
+num_load = int(args.load_proportion * INSTR_NUM)
+num_store = int(args.store_proportion * INSTR_NUM)
+inst_list = list(range(INSTR_NUM))
+mem_list = random.sample(inst_list, num_store + num_load)
+load_list = random.sample(mem_list, num_load)
+store_list = [x for x in mem_list if x not in load_list]
+
 # Generate initial memory state
 memory = list(range(0,MEM_SIZE_WORD))
 readData = []
@@ -99,15 +110,14 @@ readAddr = []
 for i in range(0, INSTR_NUM):
     # Generate random memData
     memData = random.randint(0, 999)
-    random_float = random.random()
     # Create specific cache lines
     specific_cache_lines = f'''
-    rEnable[{i}] = 1'b{1 if random_float < LOAD_PROPORTION else 0};
-    wEnable[{i}] = 1'b{1 if random_float > 1 - STORE_PROPORTION else 0};
+    rEnable[{i}] = 1'b{1 if i in load_list else 0};
+    wEnable[{i}] = 1'b{1 if i in store_list else 0};
     cacheAddr[{i}] = {cacheAddrBin[i]};
     memData[{i}] = 'd{memData};'''
     module_content += specific_cache_lines
-    if random_float > 1 - STORE_PROPORTION:
+    if i in store_list:
         memory[int(cacheAddr[i]/4)] = memData
     # elif (i % 4 != 0):
     #     readData.append(memory[i])
@@ -165,7 +175,6 @@ with open(writebuf_testdir + '/cpu.v', 'w') as file:
 with open(writebuf_testdir + '/sys_defs.vh', 'w') as file:
     file.write(sys_defs)
 
-# move other files to baseline_testdir
 if args.write_through:
     files_to_move = ['cache_write_through.v', 'data_mem.v', 'testbench.v', 'top.v','sender.v','receiver.v']
 else:
@@ -174,8 +183,9 @@ for file in files_to_move:
     shutil.copy(f'../cache_with_sender_receiver/{file}', f'{baseline_testdir}/{file}')
 
 # move other files to writebuf_testdir
-files_to_move = ['cache.v', 'data_mem.v', 'testbench.v', 'top.v', 'sender.v', 'receiver.v', 'buffer.v']
-# files_to_move = ['cache.v', 'data_mem.v', 'testbench.v', 'top.v', 'sender.v', 'receiver.v']
+if args.write_through:
+    files_to_move = ['cache_write_through.v', 'data_mem.v', 'testbench.v', 'top.v','sender.v','receiver.v', 'buffer.v']
+else:
+    files_to_move = ['cache.v', 'data_mem.v', 'testbench.v', 'top.v','sender.v','receiver.v']
 for file in files_to_move:
     shutil.copy(f'../buffer-version/{file}', f'{writebuf_testdir}/{file}')
-    # shutil.copy(f'../cache_with_sender_receiver/{file}', f'{writebuf_testdir}/{file}')

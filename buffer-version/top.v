@@ -2,7 +2,7 @@
 `include"buffer.v"
 `include"sender.v"
 `include"receiver.v"
-`include"cache.v"
+`include"cache_write_through.v"
 `include"cpu.v"
 `include"data_mem.v"
 

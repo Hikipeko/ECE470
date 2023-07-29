@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 
 runs=$1
+block_size=$2
+cache_size=$3
+load=$4
+store=$5
 rm baseline_cycle.out
 rm buffer_cycle.out
-for (( i=0; i<runs; i++ )); do
-  ./test.sh
+for (( i=0; i<$runs; i++ )); do
+  ./test.sh $block_size $cache_size $load $store
   if [ $? -ne 0 ]; then
       echo break at i = $i
       mkdir -p failure

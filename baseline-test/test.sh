@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 
-./gen-test-new.py --write-back
+# specify load & store proportion
+if [ "$#" -eq 4 ]; then
+    ./gen-test-new.py --write-through --block_size "$1" --cache_size "$2" \
+    --load-proportion "$3" --store-proportion "$4"
+else
+    ./gen-test-new.py --write-back
+fi
+
 pwd=$(pwd)
 baseline_testdir="./temp-baseline"
 writebuf_testdir="./temp-writebuf"
