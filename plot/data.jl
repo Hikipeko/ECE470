@@ -113,4 +113,5 @@ function plot_all()
     plot_compare_store(wb_speedup, "wb_scatter.png", "write back")
     plot_bar_charts(wt_speedup, "wt_bar.png", "write through")
     plot_compare_store(wt_speedup, "wt_scatter.png", "write through")
+    plot_bar_charts(wb_speedup .- wt_speedup, "wb-wt.png", "write back - write through")
 end
