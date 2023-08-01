@@ -1,13 +1,17 @@
 import Plots, Printf, Colors, Measures
 using Plots: bar, plot, savefig, title!, grid, @layout
 
-# data
-# pairs = [(8,32)	(8,16)	(4,16) (2,16) (4,8) (2,8)]
+# the pairs of (WORD_PER_BLOCK, CACHE_SIZE_WORD)
 pairs = [(2,8) (4,8) (2,16) (4,16) (8,16)]
+
+# the benchmarks
 benchmarks = ["mcf", "lbm", "soplex", "milc", "oment", "bwaves", "gcc", "libquant", "sphinx", "gems"]
 benchmark_load_percentages = [30.60 26.30 38.90 37.30 34.20 46.50 25.60 14.40 30.40 45.10] ./ 100
 benchmark_store_percentages = [8.60 8.50 7.50 10.70 17.90 8.50 13.10 5.00 3.00 10.00] ./ 100
 
+# test data from ../baseline-text
+# 5 columns: len(pairs) = 5
+# 10 rows: 10 testbenches
 wt_buffer = [928.95	1342.1	916.75	1217.35	1961.6
              828.8	1142.7	784.95	1028.15	1646.3
              1145.05	1692.2	1082.45	1507.35	2342.85
@@ -56,10 +60,11 @@ wb_base = [1144.75	1804.95	1052.2	1537.25	2677.65
            1529.3	2365	1389.8	2107.25	3613.05
            ]
 
-# speedup = (wb_base .- wb_buffer) ./ wb_base
+# compute speed up
 wb_speedup = wb_base ./ wb_buffer
 wt_speedup = wt_base ./ wt_buffer
 
+# layout for the plots
 l = @layout [° °; ° °; ° _]
 
 function plot_bar_charts(speedup, fn, cache_type)
@@ -105,7 +110,7 @@ end
 
 function plot_all()
     plot_bar_charts(wb_speedup, "wb_bar.png", "write back")
-    plot_compare_store(wb_speedup, "wb_scatter.png", "write_back")
+    plot_compare_store(wb_speedup, "wb_scatter.png", "write back")
     plot_bar_charts(wt_speedup, "wt_bar.png", "write through")
-    plot_compare_store(wt_speedup, "wt_scatter.png", "write_through")
+    plot_compare_store(wt_speedup, "wt_scatter.png", "write through")
 end
