@@ -108,10 +108,30 @@ function plot_compare_store(speedup, fn, cache_type)
     savefig(fn)
 end
 
+# impact of cache size and block size
+# fix testbench, compare different configurations
+function compare_config(speedup, fn, cache_type)
+    x = ["(2,8)", "(4,8)", "(2,16)", "(4,16)", "(8,16)"]
+    mcf = speedup[1,:]
+    lbm = speedup[2,:]
+    soplex = speedup[3,:]
+    milc = speedup[4,:]
+    oment = speedup[5,:]
+    bwaves = speedup[6,:]
+    gcc = speedup[7,:]
+    libquant = speedup[8,:]
+    sphinx = speedup[9,:]
+    gems = speedup[10,:]
+    plot(x, [mcf, lbm, soplex, milc, oment, bwaves, gcc, libquant, sphinx, gems], label=["mcf" "lbm" "soplex" "milc" "oment" "bwaves" "gcc" "libquant" "sphinx" "gems"], title = "Speedup introduced by write buffer ($cache_type)")
+    savefig(fn)
+end
+
 function plot_all()
     plot_bar_charts(wb_speedup, "wb_bar.png", "write back")
     plot_compare_store(wb_speedup, "wb_scatter.png", "write back")
     plot_bar_charts(wt_speedup, "wt_bar.png", "write through")
     plot_compare_store(wt_speedup, "wt_scatter.png", "write through")
     plot_bar_charts(wb_speedup .- wt_speedup, "wb-wt.png", "write back - write through")
+    compare_config(wb_speedup, "wb_config.png", "write back")
+    compare_config(wt_speedup, "wt_config.png", "write through")
 end
