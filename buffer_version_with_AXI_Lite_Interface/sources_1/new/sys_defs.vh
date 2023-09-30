@@ -1,0 +1,19 @@
+
+`define WORD_SIZE_BIT 32
+`define MEM_SIZE_WORD 64
+`define MEM_ADDR_SIZE 8
+`define WORD_PER_BLOCK 8
+`define CACHE_SIZE_WORD 16
+`define BLOCK_PER_CACHE 2
+`define WORD_PER_BLOCK_ADDR_SIZE 3
+`define BLOCK_PER_CACHE_ADDR_SIZE 1
+`define BANDWIDTH_WRITE_DATA 32
+`define BANDWIDTH_WRITE_ADDRESS 8
+`define BANDWIDTH_READ_DATA 32
+`define BANDWIDTH_READ_ADDRESS 8
+`define BUS_DELAY 4
+`define MEM_DELAY #100
+`define MEM_DELAY_REG 5
+`define INSTR_NUM 30
+
+`define burst_length_word 16
