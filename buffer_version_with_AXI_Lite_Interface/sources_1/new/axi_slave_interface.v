@@ -26,6 +26,7 @@ module axi_slave_interface(
     //AW Channel
     input [7:0] AWADDR,
     input AWVALID,
+    input [3:0] AWBURST,
     output reg AWREADY,
 
     //W Channel
@@ -42,6 +43,7 @@ module axi_slave_interface(
     //AR Channel
     input [7:0] ARADDR,
     input ARVALID,
+    input [3:0] ARBURST,
     output reg ARREADY,
     
     //R Channel 
@@ -60,6 +62,7 @@ module axi_slave_interface(
     output reg [31:0] MDATA,
     output reg [7:0] memAddr_rd,
     output reg [7:0] memAddr_wr,
+    output reg [3:0] burst_rd,
     output reg write,
     output reg read
     
@@ -67,6 +70,7 @@ module axi_slave_interface(
     );
     reg w_flag;
     reg [7:0] waddr,raddr;
+    reg [3:0] r_burst, w_burst;
     //reg [31:0] data [`burst_length_word - 1:0];
     reg [5:0] count;
     integer i;
@@ -90,15 +94,15 @@ module axi_slave_interface(
             waddr <= 0;
             raddr <= 0;
             w_flag <= 0;
-            /*for (i = 0; i <`burst_length_word; i=i+1) begin
-                data[i] <= 0;
-            end*/
+            r_burst <= 0;
+            w_burst <= 0;
         end
         else begin
             if (AWVALID && !AWREADY) begin
                 waddr <= AWADDR;
                 AWREADY <= 1;
                 w_flag <= 1;
+                w_burst <= AWBURST;
             end
             else begin
                 AWREADY <= 0;
@@ -111,19 +115,21 @@ module axi_slave_interface(
                     if (WLAST) begin
                         memAddr_wr <= waddr;
                         MDATA <= WDATA;
-                        write = 1;
+                        write <= 1;
                         WREADY <= 0;
                         w_flag <= 0;
                     end
                     else begin
                         memAddr_wr <= waddr;
+                        waddr <= waddr + 4;
                         MDATA <= WDATA;
-                        write = 1;
+                        write <= 1;
                     end
                 end
             end
             else begin
                 WREADY <= 0;
+                write <= 0;
             end
             
             if (BREADY && WLAST && !BVALID) begin
@@ -139,6 +145,8 @@ module axi_slave_interface(
                 ARREADY <= 1;
                 read <= 1;
                 memAddr_rd <= ARADDR;
+                r_burst <= ARBURST;
+                burst_rd <= ARBURST;
             end
             else begin
                 ARREADY <= 0;
@@ -147,11 +155,13 @@ module axi_slave_interface(
             end
             
             if (RREADY) begin
+                if (r_burst == 1) RLAST <= 1;
+                else RLAST <= 0;
                 if (send) begin
                     RRESP <= 1;
                     RDATA <= MDATA_in;
                     send_done <= 1;
-                    RLAST <= 1;
+                    r_burst <= r_burst - 1;
                     RVALID <= 1;
                 end
                 else begin
@@ -170,28 +180,5 @@ module axi_slave_interface(
                 RLAST <= 0;
             end
         end
-    end
-    
-    
-    /*always @(negedge clk) begin
-        WREADY = 0;
-        write = 0;
-        MDATA = 0;
-        read = 0;
-        memAddr_rd = 0;
-        memAddr_wr = 0;
-        if (count > 0) begin
-            MDATA = data[0];
-            memAddr_wr = waddr;
-            for (i = 0; i < `burst_length_word-1; i = i + 1) begin
-                data[i] = data[i+1];
-            end
-            data[`burst_length_word-1] = 0;
-            write = 1;
-        end
-        else begin
-            
-        end
-    end*/
-    
+    end    
 endmodule

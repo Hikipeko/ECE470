@@ -16,7 +16,8 @@ module buffer(
     output reg [`MEM_ADDR_SIZE-1:0] write_address,
     output [`WORD_SIZE_BIT-1:0] data_read_to_cache, //data output corresponding to read input signal
     output reg send_wr_data,
-    output reg send_wr_addr
+    output reg send_wr_addr,
+    output reg [3:0] w_burst
 );
     integer i;
     reg [`WORD_SIZE_BIT-1 : 0] buffer_line_data [3:0];
@@ -35,6 +36,7 @@ module buffer(
         count_addr = 0;
         send_wr_addr = 0;
         addr_history_done = 0;
+        w_burst = 0;
     end
     always @(posedge clk) begin
         if (reset) begin
@@ -68,6 +70,7 @@ module buffer(
             send_wr_data = 0;
             send_wr_addr = 0;
             addr_history_done = 0;
+            w_burst = 0;
         end
         else if (done | addr_done) begin
             if (done) begin
@@ -96,6 +99,7 @@ module buffer(
             write_address = buffer_line_address[0];
             send_wr_data = 1;
             send_wr_addr = !addr_history_done;
+            w_burst = 1;
         end
     end
 

@@ -11,9 +11,10 @@ wire [`WORD_SIZE_BIT-1:0] CC_wData,CC_rData,CS_wData,SM_wData,BM_wData,CM_rData,
 wire [`BANDWIDTH_WRITE_DATA-1:0] bus_BM,bus_CM_rd,bus_MC;
 wire write_buffer,CC_read,CC_write,hit,read_buffer,SM_write,SM_read,CM_write,BM_write,BM_read,done_w,done_r,send_addr,send_buffer,SC_done_sender_rd,write_receiver,read_receiver,send_bus,write_rec,send_bus_BM,send_wr_addr;
 wire done_sender_MC,send_MC,write_MC,write_rec_MC,send_bus_MC,done_buffer,addr_done,buffer_hit,write_buffer_out,write_rec_buffer;
-wire AWVALID,AWREADY, WVALID, WLAST, WREADY, BRESP, BVALID, BREADY, ARVALID, ARREADY, RVALID, RREADY, RLAST, RRESP;
+wire AWVALID,AWREADY, WVALID, WLAST, WREADY, BRESP, BVALID, BREADY, ARVALID, ARREADY, RVALID, RREADY, RLAST, RRESP, write_out;
 wire [7:0] AWADDR, ARADDR;
 wire [31:0] WDATA, RDATA;
+wire [3:0] AWBURST, ARBURST, w_burst, r_burst,burst_rd;
 cpu  u_cpu 
 (
     .clock                   ( clock        ),
@@ -38,7 +39,7 @@ cache  u_cache
     .memData                 ( SM_rData    ),
     .memAddr                 (abcd),
     .done_sender             (write_receiver),//(SC_done_sender_rd),
-    .write_receiver          (write_receiver),
+    .write_receiver          (write_out),
     
     
     .full(full),
@@ -56,7 +57,9 @@ cache  u_cache
     .addr                    (buffer_addr_in),
     .addr_rd                 (CS_addr),
     .wData                   (buffer_data_in),
-    .addr_sendData           (CS_wData)
+    .addr_sendData           (CS_wData),
+  
+    .r_burst(r_burst)
 );
 
 
@@ -67,6 +70,7 @@ axi_master_interface ami(
     //AW Channel
     .AWADDR(AWADDR),
     .AWVALID(AWVALID),
+    .AWBURST(AWBURST),
     .AWREADY(AWREADY),
 
     //W Channel
@@ -83,6 +87,7 @@ axi_master_interface ami(
     //AR Channel
     .ARADDR(ARADDR),
     .ARVALID(ARVALID),
+    .ARBURST(ARBURST),
     .ARREADY(ARREADY),
     
     //R Channel 
@@ -96,11 +101,14 @@ axi_master_interface ami(
     .data_rd(SM_rData),
     .done(done_buffer),
     .done_r(write_receiver),
+    .write_out(write_out),
     .write(write_buffer_out && send_buffer),
     .read(send_addr),
     .addr_wr(buffer_addr_out),
     .addr_rd(CS_addr),
-    .data_wr(buffer_data_out)
+    .data_wr(buffer_data_out),
+    .w_burst(w_burst),
+    .r_burst(r_burst)
 );
 
 axi_slave_interface asi(
@@ -109,6 +117,7 @@ axi_slave_interface asi(
     //AW Channel
     .AWADDR(AWADDR),
     .AWVALID(AWVALID),
+    .AWBURST(AWBURST),
     .AWREADY(AWREADY),
 
     //W Channel
@@ -125,6 +134,7 @@ axi_slave_interface asi(
     //AR Channel
     .ARADDR(ARADDR),
     .ARVALID(ARVALID),
+    .ARBURST(ARBURST),
     .ARREADY(ARREADY),
     
     //R Channel 
@@ -143,6 +153,7 @@ axi_slave_interface asi(
     .MDATA(BM_wData),
     .memAddr_rd(SM_addr),
     .memAddr_wr(BM_addr),
+    .burst_rd(burst_rd),
     .write(BM_write),
     .read(SM_read)
     );
@@ -150,7 +161,7 @@ axi_slave_interface asi(
 
 
 buffer bbff(.clk(clock),.reset(reset),.write_back_address(buffer_addr_in),.write_back_data(buffer_data_in),.write(write_buffer),.done(done_buffer),.addr_done(addr_done), .read(read_buffer),
-.full(full),.buffer_hit(buffer_hit),.write_data(buffer_data_out), .write_address(buffer_addr_out),.data_read_to_cache(data_read_from_buffer),.send_wr_data(send_buffer),.send_wr_addr(send_wr_addr),.write_out(write_buffer_out));
+.full(full),.buffer_hit(buffer_hit),.write_data(buffer_data_out), .write_address(buffer_addr_out),.data_read_to_cache(data_read_from_buffer),.send_wr_data(send_buffer),.send_wr_addr(send_wr_addr),.write_out(write_buffer_out),.w_burst(w_burst));
 
 
 data_mem  u_data_mem (
@@ -165,6 +176,7 @@ data_mem  u_data_mem (
     .memAddr_wr              ( BM_addr   ),
     .wData                   ( BM_wData     ),
     .memAddr_rd              (SM_addr),
+    .burst_rd                 (burst_rd),
 
     .rData                   ( CM_rData     ),
     .raddr                   (MC_raddr),

@@ -13,6 +13,7 @@ module data_mem
   input [`MEM_ADDR_SIZE-1:0] memAddr_rd,
   output reg [`WORD_SIZE_BIT-1:0] rData,
   output reg [`MEM_ADDR_SIZE-1:0] raddr,
+  input [3:0] burst_rd,
   /*output reg done_w,
   output reg done_r,*/
 
@@ -32,7 +33,7 @@ reg [`WORD_SIZE_BIT-1:0] delay_simulation_rdaddr [`MEM_DELAY_REG - 1 : 0];
 reg delay_wrprogress [`MEM_DELAY_REG - 1 : 0]; 
 // whether corresponding delay_simulation_rdaddr is valid
 reg delay_rdprogress [`MEM_DELAY_REG - 1 : 0];
-
+reg [3:0] burst_r;
 integer i;
 // initialize the memory with 1 to MEM_SIZE_WORD
 initial 
@@ -51,6 +52,7 @@ begin
     delay_simulation_wraddr[i] = 0;
     delay_simulation_rdaddr[i] = 0;
   end
+  burst_r = 0;
 end
 
 always @ (posedge clock)
@@ -86,12 +88,20 @@ begin
     delay_simulation_rdaddr[i] = delay_simulation_rdaddr[i-1];
   end
   if(read == 1) begin
+      burst_r = burst_rd - 1;
       delay_rdprogress[0] = 1;
       delay_simulation_rdaddr[0] = memAddr_rd;
   end
   else begin
-      delay_rdprogress[0] = 0;
-      delay_simulation_rdaddr[0] = 0;
+      if (burst_r > 0) begin
+        delay_rdprogress[0] = 1;
+        delay_simulation_rdaddr[0] = delay_simulation_rdaddr[1] + 4;
+        burst_r = burst_r - 1;
+      end
+      else begin
+        delay_rdprogress[0] = 0;
+        delay_simulation_rdaddr[0] = 0;
+      end
   end
 end
 

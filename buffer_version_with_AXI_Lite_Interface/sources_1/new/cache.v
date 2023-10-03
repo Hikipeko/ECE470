@@ -35,7 +35,8 @@ module cache (
     output reg [`MEM_ADDR_SIZE-1:0] addr,
     output reg [`MEM_ADDR_SIZE-1:0] addr_rd,
     output reg [`WORD_SIZE_BIT-1:0] wData,
-    output reg [`WORD_SIZE_BIT-1:0] addr_sendData
+    output reg [`WORD_SIZE_BIT-1:0] addr_sendData,
+    output reg [3:0] r_burst
 );
 
   reg valid[`BLOCK_PER_CACHE-1:0];
@@ -217,14 +218,15 @@ module cache (
     if (done_sender) begin
       send_addr = 0;
       if (counter_read > 0) begin
-        counter_read = counter_read - 1;
+        //counter_read = counter_read - 1;
+        counter_read = 0;
       end
     end
     if (read_miss == 1 && miss_reg == 0) begin
       if (cpuRead == 1) begin
-        read_buffer = 1;
+        read_buffer = 0;
         addr = cpuAddr;
-        miss_reg = 1;
+        miss_reg = 2;
       end
     end else begin
       read_buffer = 0;
@@ -246,18 +248,19 @@ module cache (
         end
       end
       else begin
-        if (read_miss_buffer_fetch == 0) begin
+        /*if (read_miss_buffer_fetch == 0) begin
             read_miss_buffer_fetch = 1;
             read_buffer = 1;
             addr = addrrdmem_reg[`WORD_PER_BLOCK-counter_read];
         end
-        else begin
+        else begin*/
             read_miss_buffer_fetch = 0;
             send_addr = 1;
             write_addrsender = 0;
             addr_sendData = 0;
-            addr_rd = addrrdmem_reg[`WORD_PER_BLOCK-counter_read];
-        end
+            addr_rd = addrrdmem_reg[0];
+            r_burst = `WORD_PER_BLOCK;
+        //end
       end
     end
     else begin

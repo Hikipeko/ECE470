@@ -26,6 +26,7 @@ module axi_master_interface(
     //AW Channel
     output reg [7:0] AWADDR,
     output reg AWVALID,
+    output reg [3:0] AWBURST,
     input AWREADY,
 
     //W Channel
@@ -42,6 +43,7 @@ module axi_master_interface(
     //AR Channel
     output reg [7:0] ARADDR,
     output reg ARVALID,
+    output reg [3:0] ARBURST,
     input ARREADY,
     
     //R Channel 
@@ -55,14 +57,18 @@ module axi_master_interface(
     output reg [31:0] data_rd,
     output reg done,
     output reg done_r,
+    output reg write_out,
     input write,
     input read,
     input [7:0] addr_wr,
     input [7:0] addr_rd,
-    input [31:0] data_wr
+    input [127:0] data_wr,
+    input [3:0] r_burst,
+    input [3:0] w_burst
 );
 
     reg flag_w, flag_r;
+    reg [3:0] wburst_reg, rburst_reg;
     always @(posedge clk) begin
         if (reset) begin
             AWADDR <= 0;
@@ -79,9 +85,14 @@ module axi_master_interface(
             done_r <= 0;
             flag_w <= 0;
             flag_r <= 0;
+            wburst_reg <= 0;
+            rburst_reg <= 0;
+            write_out <= 0;
         end
         else begin
             if (write) begin
+                AWBURST <= w_burst;
+                wburst_reg <= w_burst;
                 if (done) flag_w <= 0;
                 if (!flag_w) begin
                     AWADDR <= addr_wr;
@@ -97,10 +108,14 @@ module axi_master_interface(
                     AWVALID <= 0;
                 end
                 
-                if (WREADY && !WLAST) begin
-                    WDATA <= data_wr;
-                    WVALID <= 1;
+                if (WREADY && wburst_reg == 1) begin
                     WLAST <= 1;
+                end
+
+                if (WREADY && !WLAST) begin
+                    WDATA <= data_wr[32 * (wburst_reg - 1) +: 32];
+                    wburst_reg <= wburst_reg - 1;
+                    WVALID <= 1;
                     BREADY <= 1;
                 end
                 else begin
@@ -109,7 +124,7 @@ module axi_master_interface(
                     WLAST <= 0;
                     BREADY <= 0;
                 end
-                
+
                 if (BREADY) begin
                     if (BVALID && BRESP) begin
                         BREADY <= 0;
@@ -136,6 +151,7 @@ module axi_master_interface(
             end
             
             if (read) begin
+                ARBURST <= r_burst;
                 if (done_r) flag_r <= 0;
                 if (!flag_r) begin
                     ARADDR <= addr_rd;
@@ -161,12 +177,15 @@ module axi_master_interface(
                 
                 if (RVALID) begin
                     data_rd <= RDATA;
+                    write_out <= 1;
                     if (RRESP && RLAST) done_r <= 1;
                     else done_r <= 0;
+                    if (done_r) write_out <= 0;
                 end
                 else begin
                     done_r <= 0;
                     data_rd <= 0;
+                    write_out <= 0;
                 end
             end
             else begin
@@ -174,6 +193,7 @@ module axi_master_interface(
                 ARVALID <= 0;
                 RREADY <= 0;
                 data_rd <= 0;
+                write_out <= 0;
                 flag_r <= 0;
                 done_r <= 0;
             end
